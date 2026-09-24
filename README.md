@@ -172,7 +172,7 @@ cp -r prompt-optimizer ~/.claude/skills/
 | 适用 | 不适用 |
 |---|---|
 | 把糙需求写成 Prompt | 直接执行业务任务 |
-| 精简 / 扩写现有 Prompt | 去 AI 味润色正文（用 humanizer-zh） |
+| 精简 / 扩写现有 Prompt | 润色正文、写得像人（用人味写作） |
 | 设计 System Prompt / Agent 指令 | 从零写文章、起标题 |
 | 审阅 Prompt 找问题 | 改代码、改配置、翻译 |
 
