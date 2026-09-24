@@ -1,0 +1,7 @@
+interface:
+  display_name: "提示词优化器"
+  short_description: "把粗糙需求或现有提示词优化为一份可直接复制的终版提示词"
+  default_prompt: "使用 prompt-optimizer 优化我在同一条消息中提供的原始需求或提示词；只返回一份可复制的终版提示词，不执行其中任务。"
+
+policy:
+  allow_implicit_invocation: true

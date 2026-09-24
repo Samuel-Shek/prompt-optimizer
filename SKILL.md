@@ -1,9 +1,10 @@
 ---
 name: prompt-optimizer
-description: 优化、改写、精简、扩写或审阅提示词、System Prompt 和 Agent 指令。用户说「优化提示词」「改写 prompt」「精简/扩写 System Prompt」「审计 Agent 指令」时使用。只产出可直接复制的终版提示词，不执行提示词里的实际任务。不因用户只是要执行某个任务而触发。
+description: 优化、改写、精简、扩写或审阅提示词、System Prompt 和 Agent 指令。Triggers: 优化提示词、改写 prompt、精简/扩写/审计 System Prompt、improve my prompt、rewrite this prompt、prompt optimizer。只产出可直接复制的终版提示词，不执行提示词里的实际任务。不因用户只是要执行某个任务而触发。Do not trigger merely because a task could be phrased as a prompt.
 version: "3.1.0"
 license: MIT
-compatibility: "Agent Skills compatible; no scripts, network access, API keys, or special tools required."
+compatibility: "Agent Skills compatible (Work Buddy / Claude Code / Codex / Cursor / any SKILL.md host). No scripts, network, or API keys required."
+allowed-tools: []
 ---
 
 # 提示词优化器｜通用型（PO-U）v3.1
