@@ -1,0 +1,232 @@
+#!/usr/bin/env python3
+"""Run the prompt-optimizer exam (cases.json) with the Claude CLI.
+
+For every case: run the optimizer (SKILL.md + references/methods.md as the
+system prompt, no tools, no user settings), save its reply, and for cases with
+an `effect` block run the same target model twice -- once on the raw request,
+once on the optimized prompt -- with an identical neutral system prompt.
+
+Outputs go to --out. Judging is done afterwards by a person (or a reviewer that
+reads the saved files); this script only records outputs and a few mechanical
+checks. Usage:
+
+    python3 run_eval.py --out DIR [--ids C01,C02] [--opt-model opus] [--target-model sonnet]
+"""
+import argparse
+import concurrent.futures as cf
+import hashlib
+import json
+import random
+import re
+import shutil
+import subprocess
+import time
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+SKILL = HERE.parent / "SKILL.md"
+METHODS = HERE.parent / "references" / "methods.md"
+NEUTRAL_SYSTEM = "你是一个乐于助人的助手。"
+CLI_FLAGS = [
+    "--tools", "",
+    "--setting-sources", "",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--strict-mcp-config",
+]
+
+
+def sha256(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def run_claude(prompt, system_file, model, timeout):
+    cmd = [shutil.which("claude"), "-p", prompt, "--system-prompt-file", str(system_file),
+           "--model", model, *CLI_FLAGS]
+    start = time.time()
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout,
+                              stdin=subprocess.DEVNULL)  # claude -p appends piped stdin to the prompt
+        return {"text": proc.stdout.strip(), "exit": proc.returncode,
+                "stderr": proc.stderr.strip()[-500:], "seconds": round(time.time() - start, 1)}
+    except subprocess.TimeoutExpired:
+        return {"text": "", "exit": None, "stderr": "timeout", "seconds": round(time.time() - start, 1)}
+
+
+LIMIT_MARKERS = ("hit your session limit", "rate limit", "usage limit")
+
+
+def usable(path):
+    """True when a saved output exists and is not an empty or quota-error reply."""
+    try:
+        text = Path(path).read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return False
+    return bool(text.strip()) and not any(m in text.lower() for m in LIMIT_MARKERS)
+
+
+def reuse(path):
+    return {"text": Path(path).read_text(encoding="utf-8"), "exit": 0, "stderr": "reused", "seconds": 0}
+
+
+def extract_prompt(case_id, reply):
+    """Pull the deliverable prompt out of the optimizer reply."""
+    if case_id == "C03":
+        try:
+            return json.loads(reply)["prompt"]
+        except Exception:
+            m = re.search(r"\{.*\}", reply, re.S)
+            if m:
+                try:
+                    return json.loads(m.group(0))["prompt"]
+                except Exception:
+                    pass
+    # Take the outermost block: from the first fence line to the last line made of the
+    # same fence character with at least the opening length. Inner blocks that reuse the
+    # same fence length (a formatting defect in the optimizer output) stay inside.
+    lines = reply.split("\n")
+    opens = [i for i, l in enumerate(lines) if re.match(r"^\s*(`{3,}|~{3,})", l)]
+    if opens:
+        first = opens[0]
+        fence = re.match(r"^\s*(`{3,}|~{3,})", lines[first]).group(1)
+        closes = [i for i in range(len(lines) - 1, first, -1)
+                  if re.fullmatch(r"\s*" + re.escape(fence[0]) + r"{%d,}\s*" % len(fence), lines[i])]
+        if closes:
+            return "\n".join(lines[first + 1:closes[0]])
+    return reply
+
+
+def mechanical_checks(case_id, opt_reply, target_outputs):
+    """A few objective checks; everything else is judged by reading."""
+    out = {}
+    if case_id == "C03":
+        try:
+            obj = json.loads(opt_reply)
+            out["optimizer_pure_json_only_prompt"] = isinstance(obj, dict) and list(obj) == ["prompt"]
+        except Exception:
+            out["optimizer_pure_json_only_prompt"] = False
+    for side, text in target_outputs.items():
+        if case_id == "C01":
+            out[f"{side}_chars"] = len(text)
+        if case_id == "C02":
+            m = re.search(r"\{.*\}", text, re.S)
+            try:
+                obj = json.loads(m.group(0)) if m else None
+                out[f"{side}_json_keys_ok"] = bool(obj) and sorted(obj) == ["budget", "company", "name", "need"]
+                out[f"{side}_name_null"] = bool(obj) and obj.get("name") is None
+                out[f"{side}_budget"] = obj.get("budget") if obj else None
+            except Exception:
+                out[f"{side}_json_keys_ok"] = False
+        if case_id == "C09":
+            out[f"{side}_has_empty_marker"] = "暂无可确认内容" in text
+            out[f"{side}_forbidden_section"] = any(w in text for w in ("下周计划", "风险"))
+        if case_id == "H04":
+            out[f"{side}_banned_words"] = [w for w in ("赋能", "打造", "助力") if w in text]
+            out[f"{side}_placeholder_count"] = text.count("【待补数据】")
+            out[f"{side}_chars"] = len(text)
+    return out
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--out", required=True)
+    ap.add_argument("--ids", default="")
+    ap.add_argument("--opt-model", default="opus")
+    ap.add_argument("--target-model", default="sonnet")
+    ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--timeout", type=int, default=600)
+    ap.add_argument("--seed", type=int, default=20261013)
+    ap.add_argument("--rounds", type=int, default=1, help="target runs per side; round 2+ files get a .rN suffix")
+    ap.add_argument("--skill", default=str(SKILL), help="optimizer SKILL.md to test (default: the live one)")
+    ap.add_argument("--resume", action="store_true", help="reuse usable outputs already in --out; rerun only missing or quota-error ones")
+    args = ap.parse_args()
+
+    out = Path(args.out)
+    out.mkdir(parents=True, exist_ok=True)
+    cases = json.loads((HERE / "cases.json").read_text(encoding="utf-8"))["cases"]
+    if args.ids:
+        wanted = set(args.ids.split(","))
+        cases = [c for c in cases if c["id"] in wanted]
+
+    opt_system = out / "optimizer_system.md"
+    skill = Path(args.skill)
+    opt_system.write_text(skill.read_text(encoding="utf-8") + "\n\n---\n\n# 附：references/methods.md（技能目录中的参考文件）\n\n"
+                          + METHODS.read_text(encoding="utf-8"), encoding="utf-8")
+    neutral = out / "neutral_system.txt"
+    neutral.write_text(NEUTRAL_SYSTEM, encoding="utf-8")
+
+    # Stage 1: optimizer runs.
+    with cf.ThreadPoolExecutor(args.workers) as pool:
+        futs = {}
+        for c in cases:
+            saved = out / f"{c['id']}.optimizer.md"
+            if args.resume and usable(saved):
+                futs[c["id"]] = pool.submit(reuse, saved)
+            else:
+                futs[c["id"]] = pool.submit(run_claude, c["optimizer_input"], opt_system, args.opt_model, args.timeout)
+        opt = {cid: f.result() for cid, f in futs.items()}
+    for cid, r in opt.items():
+        (out / f"{cid}.optimizer.md").write_text(r["text"], encoding="utf-8")
+
+    # Stage 2: target runs for effect cases.
+    jobs = {}
+    with cf.ThreadPoolExecutor(args.workers) as pool:
+        for c in cases:
+            eff = c.get("effect")
+            if not eff:
+                continue
+            material = eff.get("material", "")
+            raw = eff["task"] + (("\n\n" + material) if material else "")
+            prompt = extract_prompt(c["id"], opt[c["id"]]["text"])
+            optimized = prompt + (("\n\n" + material) if material and material not in prompt else "")
+            (out / f"{c['id']}.optimized_prompt_used.md").write_text(optimized, encoding="utf-8")
+            for rnd in range(1, args.rounds + 1):
+                sfx = "" if rnd == 1 else f".r{rnd}"
+                for side, prompt_text in (("raw", raw), ("optimized", optimized)):
+                    saved = out / f"{c['id']}.target.{side}{sfx}.md"
+                    fresh = not usable(out / f"{c['id']}.optimizer.md") or opt[c["id"]]["stderr"] != "reused"
+                    if args.resume and usable(saved) and not fresh:
+                        jobs[(c["id"], side + sfx)] = pool.submit(reuse, saved)
+                    else:
+                        jobs[(c["id"], side + sfx)] = pool.submit(run_claude, prompt_text, neutral, args.target_model, args.timeout)
+        target = {k: f.result() for k, f in jobs.items()}
+
+    rng = random.Random(args.seed)
+    manifest = {
+        "skill_sha256": sha256(skill), "methods_sha256": sha256(METHODS),
+        "cases_sha256": sha256(HERE / "cases.json"),
+        "optimizer_model": args.opt_model, "target_model": args.target_model,
+        "started_note": "single run per case; no repetition", "cases": {},
+    }
+    blind_key = {}
+    for c in cases:
+        cid = c["id"]
+        entry = {"group": c["group"], "type": c["type"],
+                 "optimizer": {k: opt[cid][k] for k in ("exit", "seconds", "stderr")}}
+        outputs = {}
+        for rnd in range(1, args.rounds + 1):
+            sfx = "" if rnd == 1 else f".r{rnd}"
+            pair = {}
+            for side in ("raw", "optimized"):
+                r = target.get((cid, side + sfx))
+                if r:
+                    (out / f"{cid}.target.{side}{sfx}.md").write_text(r["text"], encoding="utf-8")
+                    entry[f"target_{side}{sfx}"] = {k: r[k] for k in ("exit", "seconds", "stderr")}
+                    outputs[side + sfx] = pair[side] = r["text"]
+            if pair:
+                order = ["raw", "optimized"]
+                rng.shuffle(order)
+                blind_key[cid + sfx] = {"A": order[0], "B": order[1]}
+                (out / f"{cid}{sfx}.blind.md").write_text(
+                    f"# {cid}{sfx} 盲评（A/B 顺序随机）\n\n## 任务\n\n{c['effect']['task']}\n\n## 材料\n\n{c['effect'].get('material') or '（无）'}\n\n"
+                    f"## 评判标准\n\n" + "\n".join(f"- {x}" for x in c["effect"]["criteria"]) +
+                    f"\n\n## 结果 A\n\n{pair[order[0]]}\n\n## 结果 B\n\n{pair[order[1]]}\n", encoding="utf-8")
+        entry["mechanical"] = mechanical_checks(cid, opt[cid]["text"], outputs)
+        manifest["cases"][cid] = entry
+    (out / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=1), encoding="utf-8")
+    (out / "blind_key.json").write_text(json.dumps(blind_key, ensure_ascii=False, indent=1), encoding="utf-8")
+    print(json.dumps({cid: {"opt_exit": e["optimizer"]["exit"], "mech": e["mechanical"]} for cid, e in manifest["cases"].items()}, ensure_ascii=False, indent=1))
+
+
+if __name__ == "__main__":
+    main()
