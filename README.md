@@ -1,8 +1,18 @@
 # prompt-optimizer
 
-把粗糙需求整理为可执行、可复制的提示词。当前版本：**v3.4.0**，MIT 许可。
+把粗糙需求整理为可执行、可复制的提示词。此版本为 **v3.5.0-beta.1 公开测试版**，采用 MIT 许可。稳定版仍在 [main 分支](https://github.com/Samuel-Shek/prompt-optimizer/tree/main)。
+
+v3.5 增加了多轮授权合并和执行完成条件。测试用的入口文件保持原样；发布版本号写在本说明和版本标签中。小样本支持开放试用，尚未证明它能稳定改善结果或替执行模型保证完成。
 
 它是一个 Skill（写给 AI 读的工作说明书），放进 Codex、Claude Code 等能读取技能文件的 AI 工具即可使用，不是独立软件，也不是新模型。
+
+## v3.5 的改动与证据
+
+- 最新明确授权只恢复指定对象、动作和次数，其余禁止继续有效。
+- 把仍须执行的动作、顺序和成功回执写入执行正文。要求重新读取时，历史读取不能抵扣。
+- 区分允许做与必须做；不因核验需要而擅自增加读回、重试或发布。
+
+[测试方法、结果与成本](docs/v3.5-beta-evaluation.md) · [使用示例](docs/examples.md) · [提交反馈](https://github.com/Samuel-Shek/prompt-optimizer/issues)
 
 ## 三种使用方式
 
@@ -22,11 +32,11 @@
 
 ## 怎么知道它有没有用：考卷
 
-仓库带一套固定考卷，在 [evals/](evals/)：16 道虚构题，12 道日常题加 4 道专门检查“有没有改坏”的留出题。每道题有优化器自身的检查项；7 道题还有效果对比：同一个目标模型分别执行“原话”和“优化后的提示词”，由人读结果判断哪个更好。
+仓库保留 v3.4 时期的一套固定考卷，在 [evals/](evals/)：16 道虚构题，12 道日常题加 4 道专门检查“有没有改坏”的留出题。每道题有优化器自身的检查项；7 道题还有效果对比：同一个目标模型分别执行“原话”和“优化后的提示词”，由人读结果判断哪个更好。
 
-这套考卷只在维护时使用，不会注入生成的提示词。测试方法、结果和局限见 [evals/README.md](evals/README.md)。
+这套考卷只在维护时使用，不会注入生成的提示词；它不是本次 v3.5 比较实验的复现入口。测试方法、结果和局限见 [evals/README.md](evals/README.md)。
 
-## v3.4.0 更新
+## v3.4.0 更新记录
 
 考卷首轮（v3.3）发现的主要毛病是“加料”：替用户多加没要的交付物、默认值和非必要的待填空位，7 道效果题里优化后的提示词中位数约为原话的 9 倍长。v3.4.0 只加了 5 句话，每一句都对应考卷里看到的具体失败：
 
@@ -61,12 +71,12 @@
 
 `references/methods.md` 里的四种按需方法，借鉴自数字生命卡兹克分享的常用提示词，出处写在该文件内。
 
-没有拿本优化器与上述任何一个具体产品做过逐项对跑，因此不主张它“比别人更好”，只说明它的取舍和证据。
+v3.4.0 发布时尚未做这些来源的逐项对比。后续 v3.5 测试版只比较了两个指定公开模板，并非它们的完整产品；结果和局限见[测试说明](https://github.com/Samuel-Shek/prompt-optimizer/blob/v3.5.0-beta.1/docs/v3.5-beta-evaluation.md)。
 
 ## 安装
 
 ```bash
-git clone https://github.com/Samuel-Shek/prompt-optimizer.git
+git clone --branch v3.5.0-beta.1 --depth 1 https://github.com/Samuel-Shek/prompt-optimizer.git
 ```
 
 把克隆得到的整个 `prompt-optimizer` 目录放入宿主的技能目录。常见目录：Codex 的 `~/.agents/skills/`、Claude Code 的 `~/.claude/skills/`、WorkBuddy 的 `~/.workbuddy/skills/`；以宿主当前文档为准。保留 `references/` 和 `agents/`。已有同名技能时先检查版本，勿静默覆盖用户修改。新开会话或按宿主机制重新加载。

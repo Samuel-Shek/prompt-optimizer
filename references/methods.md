@@ -32,7 +32,7 @@
 
 ## 借鉴来源与限制
 
-这些方法借鉴数字生命卡兹克分享的[12 个常用提示词文章](https://mp.weixin.qq.com/s/NAdhdFrUq9-BKelqzqpwBQ)中双层解释、逆向工程、双重立场和实验思路，并结合现有优化器的保真与权限边界进行改写。2026-10-05 的维护核对未能直接读取原微信页面，内容依据公开全文转载及公开归属的提示词资料核对：
+这些方法借鉴数字生命卡兹克分享的[12 个常用提示词文章](https://mp.weixin.qq.com/s/NAdhdFrUq9-BKelqzqpwBQ)中双层解释、逆向工程、双重立场和实验思路，并结合现有优化器的保真与权限边界进行改写。原微信页面本次未能直接读取，内容依据公开全文转载及公开归属的提示词资料核对：
 
 - [公开全文转载](https://aitntnews.com/newDetail.html?newId=28494)
 - [公开提示词资料](https://raw.githubusercontent.com/xiaolouJB/prompt-toolkit/main/sources/prompts.md)
