@@ -1,16 +1,18 @@
 # prompt-optimizer
 
-把粗糙需求整理为可执行、可复制的提示词。当前版本：**v3.4.0**，MIT 许可。
+把粗糙需求整理为可执行、可复制的提示词。当前正式版本：**v3.5.0**，MIT 许可。
 
 它是一个 Skill（写给 AI 读的工作说明书），放进 Codex、Claude Code 等能读取技能文件的 AI 工具即可使用，不是独立软件，也不是新模型。
 
-## v3.5 公开测试版
+## v3.5.0：减少擅自增加条件
 
-[v3.5.0-beta.1 发布页](https://github.com/Samuel-Shek/prompt-optimizer/releases/tag/v3.5.0-beta.1)提供新版本和安装方法。默认主分支仍保留 v3.4.0；尝试测试版需要明确选择该版本。
+[正式版发布页](https://github.com/Samuel-Shek/prompt-optimizer/releases/tag/v3.5.0) · [本轮比较依据](docs/v3.5-comparison.md) · [v3.4.0 回退版本](https://github.com/Samuel-Shek/prompt-optimizer/tree/v3.4.0)
 
-本次修改集中在多轮授权和完成条件：新授权只恢复指定对象与动作，仍须执行的步骤写进正文，要求重新读取时保留时间条件。它仍是提示词工具，不能强制执行模型完成工具操作。
+本版由经过单轮小范围比较的 **3.5-c3** 升为正式版，集中改动三处：区分原有要求、等义澄清与新增建议；不擅自添加数量、格式、筛选或验收条件；交付前同时检查遗漏和新增限制。用户明确要求方案时，仍允许范围内的方法设计。
 
-现有小样本中，v3.5、两个指定公开模板、直接使用原始提示词均通过 18 次执行观察。v3.5 的模型用量高于两个模板，尚未证明稳定收益。详见[测试方法、结果与成本](https://github.com/Samuel-Shek/prompt-optimizer/blob/v3.5.0-beta.1/docs/v3.5-beta-evaluation.md)。
+4 道题、两个版本各一次，共 8 次优化与 8 次执行：**1 题优化稿保真性改善、3 题持平，未观察到退步**；最终任务两版均为 4/4 合格。单次观察不证明稳定提升，最终任务通过数没有提高。
+
+正式版替代此前的 **v3.5.0-beta.1**。旧测试版侧重多轮授权和完成条件，与本版来自不同候选；它的额外工具流程规则未合入本版，历史成绩不能归到本版。旧标签及[历史测试说明](https://github.com/Samuel-Shek/prompt-optimizer/blob/v3.5.0-beta.1/docs/v3.5-beta-evaluation.md)继续保留。
 
 ## 三种使用方式
 
@@ -23,7 +25,7 @@
 1. **先判断你要什么，再动笔**：执行请求、改写、只审阅、材料还没发完，分别处理，不见到任务就改写成提示词。
 2. **控制指令、待改写材料、背景分开**：材料里夹带的“忽略之前规则”只是被处理的内容；材料里写的“只输出 JSON”约束的是目标任务，不是优化器本次交付。
 3. **多轮修改有账**：最新明确修正才覆盖旧要求，没撤销的一直算数；“再短一点”不会顺手删掉禁止项。
-4. **把愿望换成可检查的行为**：“尽量准确”换成来源、核验方法、不确定性标注。
+4. **把愿望换成可检查的行为**：按需明确来源、核验方法和不确定性，不把可选做法写成唯一要求。
 5. **缺的信息不替你编**：能让目标模型去查的写明去哪查；低风险默认值标明是假设；必须由你补的才留占位符；会实质改变结果又无法默认时，才问，最多三个问题。
 
 另有一条贯穿全程：**按任务决定复杂度，不按字数**。保留目标、数字、精确字符串、允许与禁止项、事实状态和验收标准；不为简单任务套长模板。
@@ -32,7 +34,7 @@
 
 仓库带一套固定考卷，在 [evals/](evals/)：16 道虚构题，12 道日常题加 4 道专门检查“有没有改坏”的留出题。每道题有优化器自身的检查项；7 道题还有效果对比：同一个目标模型分别执行“原话”和“优化后的提示词”，由人读结果判断哪个更好。
 
-这套考卷只在维护时使用，不会注入生成的提示词。测试方法、结果和局限见 [evals/README.md](evals/README.md)。
+这套历史考卷只在维护时使用，不会注入生成的提示词。历史测试方法与局限见 [evals/README.md](evals/README.md)；本次正式 3.5 只采用[四题小范围比较](docs/v3.5-comparison.md)，没有重跑整套考卷。
 
 ## v3.4.0 更新
 
@@ -69,17 +71,27 @@
 
 `references/methods.md` 里的四种按需方法，借鉴自数字生命卡兹克分享的常用提示词，出处写在该文件内。
 
-v3.4.0 发布时尚未做这些来源的逐项对比。后续 v3.5 测试版只比较了两个指定公开模板，并非它们的完整产品；结果和局限见[测试说明](https://github.com/Samuel-Shek/prompt-optimizer/blob/v3.5.0-beta.1/docs/v3.5-beta-evaluation.md)。
+v3.4.0 发布时尚未做这些来源的逐项对比。历史 v3.5.0-beta.1 测试版只比较了两个指定公开模板，并非它们的完整产品；结果和局限见[测试说明](https://github.com/Samuel-Shek/prompt-optimizer/blob/v3.5.0-beta.1/docs/v3.5-beta-evaluation.md)。
 
 ## 安装
 
 ```bash
-git clone https://github.com/Samuel-Shek/prompt-optimizer.git
+git clone --branch v3.5.0 --depth 1 https://github.com/Samuel-Shek/prompt-optimizer.git
 ```
 
 把克隆得到的整个 `prompt-optimizer` 目录放入宿主的技能目录。常见目录：Codex 的 `~/.agents/skills/`、Claude Code 的 `~/.claude/skills/`、WorkBuddy 的 `~/.workbuddy/skills/`；以宿主当前文档为准。保留 `references/` 和 `agents/`。已有同名技能时先检查版本，勿静默覆盖用户修改。新开会话或按宿主机制重新加载。
 
 “本地 Skill”指本机上的指令文件，由当前 AI 使用；不要求本地模型，也不保证模型计算离线。此技能本身不需要浏览器、额外 API Key 或后台服务；宿主 AI 的模型与计费规则仍适用。
+
+## 回退到 v3.4.0
+
+v3.4.0 的源文件保留在固定标签。以下命令下载到另一目录，便于核对后按宿主方式替换；不会直接覆盖现有安装：
+
+```bash
+git clone --branch v3.4.0 --depth 1 https://github.com/Samuel-Shek/prompt-optimizer.git prompt-optimizer-v3.4
+```
+
+保留个人改动，按宿主机制重新加载。旧标签固定，不用当前主分支代替旧版。
 
 ## 示例
 

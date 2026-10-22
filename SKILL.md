@@ -1,11 +1,11 @@
 ---
 name: prompt-optimizer
-description: Optimize, adapt, shorten, expand, or audit requirements, prompts, system prompts, and agent instructions. Use for prompt rewrite requests or a scoped internal clarification task assigned by the host. Return a copy-ready prompt to the caller; the host continues the original task. Audit-only requests receive review only. Do not trigger merely because an execution request could be rewritten as a prompt.
-license: MIT
+description: >
+  Optimize, adapt, shorten, expand, or audit rough requirements, prompts, system prompts, and agent instructions. Use when the user asks to 优化提示词、改写 prompt、精简/扩写/适配/审计 System Prompt 或 Agent 指令，显式调用 $prompt-optimizer、/prompt-optimizer 或 prompt-optimizer，或继续修改上一版提示词。Also use when a host assigns an internal requirements-clarification subtask for a complex execution request because clarification materially helps. Return the prompt to the host, which continues the original task. Return one copy-ready final prompt for user-facing rewrite requests; provide review only for audit-only requests. Do not trigger merely because any execution request could be rewritten as a prompt.
 metadata:
-  version: "3.4.0"
+  version: "3.5.0"
 ---
-# 提示词优化器｜通用型（PO-U）v3.4.0
+# 提示词优化器｜通用型（PO-U）v3.5
 
 ## 一、核心职责
 
@@ -114,7 +114,9 @@ metadata:
 - 允许项、禁止项、工具权限和验收标准；
 - 信息的来源与确定程度，以及“已确认、用户自述、待核实、假设、计划、已完成”等状态。
 
-不得把“计划申请认证”改成“已获认证”，把“讨论过方案”改成“已实施”，或把“可能有优势”改成“已经领先”。新增方法建议可以写成执行要求，不能改写成已有研究结论。
+不得把“计划申请认证”改成“已获认证”，把“讨论过方案”改成“已实施”，或把“可能有优势”改成“已经领先”。
+
+区分原有要求、等义澄清和新增建议：保留原有要求的含义和强度；等义澄清可重排、去重和补全已知指代，但不得借此裁定未决事实或改变允许范围；新增方法按第 6.3 节处理，不冒充用户已确定的要求或已有研究结论。
 
 除非用户明确要求，不改变目标或扩大范围；无论是否要求补充内容，都不得编造业务事实、研究结论、工具能力或平台规则。不能静默删除重要约束，也不能把未经核验的用户陈述提升为已验证事实。
 
@@ -134,14 +136,18 @@ metadata:
 
 ### 6.3 将愿望改成可执行规则
 
-把模糊要求转换为可检查行为：
+把模糊要求转换为可检查行为时，先区分已有要求与可选做法：
 
 - “尽量准确” → 来源、核验方法、不确定性标注和错误处理；
 - “写得专业” → 受众、语气、结构、术语密度和禁用表达；
 - “全面分析” → 范围、维度、时间边界和结论格式；
 - “代码可靠” → 环境、边界情况、测试和验收条件。
 
-仅在能减少实际歧义时加入示例、工作流、检查规则或输出 Schema，不用更长的描述代替更清楚的要求。
+以上是按需检查的方向，不要求逐项补齐。只在能减少实际歧义且不改变原要求时加入示例、工作流、检查规则或输出 Schema，不把可选做法固化为唯一做法。
+
+没有用户要求或已明确提供的接口等约束作为依据，不擅自增加固定数量、强制格式、筛选条件或验收标准；方法设计不产生新的操作权限。不能以更严的证据门槛过滤已有可用事实，也不能为消除歧义而擅自选定事实解释。影响结果的未决含义按第五章处理。
+
+用户明确要求设计方案或补充方法时，可在原目标及约束内给出方法、步骤和示例；新增的设计选择应作为方案建议，不冒充用户已确定的硬条件。用户直接指定的数量、格式、限制和验收要求仍应完整保留。
 
 改写成规则时，不比原话更严，也不更宽。用户没给的取舍标准不要替他补，例如“只列明确点名的项目”“拿不准就不写或改放到别的段”；用户只说“没有证据的不要写”时就照这句写，原话允许写的有据内容仍要写。
 
@@ -268,7 +274,7 @@ metadata:
 
 1. **路由正确**：区分用户优化任务、宿主内部整理、继续修改、材料收集、只审阅和普通对话，没有误触发或执行目标任务；内部整理的结果交回宿主，不冒充原任务完成。
 2. **边界清楚**：区分控制指令、材料、背景，以及两层输出格式和两层操作权限。
-3. **原意保真**：保留目标、重要约束、精确文本、事实来源与确定程度，没有把计划写成完成。
+3. **原意保真**：双向核对原文与优化稿：原有且仍有效的目标、约束、精确文本、事实来源与确定程度均已保留，没有把计划写成完成；优化稿中的新增硬条件均有用户要求或已提供约束的依据，方案建议没有冒充硬条件，也未排除原要求允许的内容。按含义核对，不只检查“必须”“只能”等词。
 4. **多轮一致**：最新明确修正已生效，未改要求未丢失，已撤销要求不再执行，无跨任务事实或权限污染。
 5. **冲突透明**：已按明确依据解决冲突，或标注影响范围与处理方式，没有静默选边。
 6. **真实可执行**：没有编造事实、权限、模型能力、读取结果或测试结果；只加入任务需要的结构。不新增用户未要求的交付物（如候选标题、清单、附表），篇幅、结构等默认值只在缺了就无法执行时才加。
