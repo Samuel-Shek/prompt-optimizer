@@ -37,7 +37,7 @@ python3 evals/run_eval.py --out ./eval-out --opt-model opus --target-model sonne
 - 14 组目标任务比较：优化后更好 4、原话更好 1、差不多 9。优化后的提示词中位数约为原话的 4.5 倍长。
 - 周报题（C09）两边都出现真退步：优化后的提示词把“没有证据的不要写”改得更严，执行时漏写了有据的进展。这直接促成了 v3.4 的第一句。
 
-**v3.4 复测**：见仓库根目录 [README](../README.md) 的对照表。
+**v3.4 复测**：见 [VALIDATION.md](../VALIDATION.md) 中 v3.4.0 一节的“复测摘要”（原在根目录 README，2026-10-22 移入）。
 
 ## 局限
 
