@@ -4,7 +4,7 @@
 
 ## 内容
 
-- `cases.json`：16 道虚构题（材料均为虚构，不含真实客户或私人信息）。
+- `cases.json`：16 道虚构题（中文）；`cases.en.json` 是对应的英文版（材料均为虚构，不含真实客户或私人信息）。
   - `main` 组 12 题：日常基线与改进对比；
   - `holdout` 组 4 题（H01–H04）：修改优化器时不得用来调规则，只用来检查改动有没有把别处改坏。
 - `run_eval.py`：用 Claude 命令行（`claude`）跑考卷的脚本。
@@ -16,6 +16,10 @@
 ```bash
 python3 evals/run_eval.py --out ./eval-out --opt-model opus --target-model sonnet
 ```
+
+英文版用 `--lang en`，会测试 `prompt-optimizer-en/` 并使用英文考卷 `cases.en.json`（与 `cases.json` 同编号、同考点）。不加 `--lang` 时默认测中文版。
+
+English: add `--lang en` to test `prompt-optimizer-en/` with `cases.en.json`, which mirrors `cases.json` case by case.
 
 常用参数：`--ids C01,C02` 只跑指定题；`--rounds 2` 目标任务每侧跑两轮；`--skill 路径` 测试另一版 `SKILL.md`；`--resume` 复用已有输出、只补跑失败或缺失的部分。
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the prompt-optimizer exam (cases.json) with the Claude CLI.
+"""Run the prompt-optimizer exam (cases.json in Chinese, cases.en.json in English) with the Claude CLI.
 
 For every case: run the optimizer (SKILL.md + references/methods.md as the
 system prompt, no tools, no user settings), save its reply, and for cases with
@@ -10,7 +10,10 @@ Outputs go to --out. Judging is done afterwards by a person (or a reviewer that
 reads the saved files); this script only records outputs and a few mechanical
 checks. Usage:
 
-    python3 run_eval.py --out DIR [--ids C01,C02] [--opt-model opus] [--target-model sonnet]
+    python3 run_eval.py --out DIR [--lang en|zh] [--ids C01,C02] [--opt-model opus] [--target-model sonnet]
+
+--lang picks the matching skill folder, cases file and neutral system prompt
+(zh: the root SKILL.md, the default before English was added; en: prompt-optimizer-en/).
 """
 import argparse
 import concurrent.futures as cf
@@ -24,9 +27,31 @@ import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-SKILL = HERE.parent / "SKILL.md"
-METHODS = HERE.parent / "references" / "methods.md"
-NEUTRAL_SYSTEM = "你是一个乐于助人的助手。"
+ROOT = HERE.parent
+LANGS = {
+    "en": {
+        "skill_dir": ROOT / "prompt-optimizer-en",
+        "cases": HERE / "cases.en.json",
+        "neutral": "You are a helpful assistant.",
+        "appendix": "# Appendix: references/methods.md (reference file in the skill folder)",
+        "empty_marker": "No confirmable content",
+        "forbidden_sections": ("Next week", "Risks"),
+        "banned_words": ("empower", "leverage", "synergy"),
+        "placeholder": "[DATA NEEDED]",
+        "blind": ("Blind review (A/B order randomized)", "Task", "Material", "(none)", "Criteria", "Result A", "Result B"),
+    },
+    "zh": {
+        "skill_dir": ROOT,
+        "cases": HERE / "cases.json",
+        "neutral": "你是一个乐于助人的助手。",
+        "appendix": "# 附：references/methods.md（技能目录中的参考文件）",
+        "empty_marker": "暂无可确认内容",
+        "forbidden_sections": ("下周计划", "风险"),
+        "banned_words": ("赋能", "打造", "助力"),
+        "placeholder": "【待补数据】",
+        "blind": ("盲评（A/B 顺序随机）", "任务", "材料", "（无）", "评判标准", "结果 A", "结果 B"),
+    },
+}
 CLI_FLAGS = [
     "--tools", "",
     "--setting-sources", "",
@@ -96,9 +121,10 @@ def extract_prompt(case_id, reply):
     return reply
 
 
-def mechanical_checks(case_id, opt_reply, target_outputs):
+def mechanical_checks(case_id, opt_reply, target_outputs, lang):
     """A few objective checks; everything else is judged by reading."""
     out = {}
+    L = LANGS[lang]
     if case_id == "C03":
         try:
             obj = json.loads(opt_reply)
@@ -108,6 +134,7 @@ def mechanical_checks(case_id, opt_reply, target_outputs):
     for side, text in target_outputs.items():
         if case_id == "C01":
             out[f"{side}_chars"] = len(text)
+            out[f"{side}_words"] = len(text.split())
         if case_id == "C02":
             m = re.search(r"\{.*\}", text, re.S)
             try:
@@ -118,18 +145,20 @@ def mechanical_checks(case_id, opt_reply, target_outputs):
             except Exception:
                 out[f"{side}_json_keys_ok"] = False
         if case_id == "C09":
-            out[f"{side}_has_empty_marker"] = "暂无可确认内容" in text
-            out[f"{side}_forbidden_section"] = any(w in text for w in ("下周计划", "风险"))
+            out[f"{side}_has_empty_marker"] = L["empty_marker"] in text
+            out[f"{side}_forbidden_section"] = any(w in text for w in L["forbidden_sections"])
         if case_id == "H04":
-            out[f"{side}_banned_words"] = [w for w in ("赋能", "打造", "助力") if w in text]
-            out[f"{side}_placeholder_count"] = text.count("【待补数据】")
+            out[f"{side}_banned_words"] = [w for w in L["banned_words"] if w.lower() in text.lower()]
+            out[f"{side}_placeholder_count"] = text.count(L["placeholder"])
             out[f"{side}_chars"] = len(text)
+            out[f"{side}_words"] = len(text.split())
     return out
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
+    ap.add_argument("--lang", choices=sorted(LANGS), default="zh")
     ap.add_argument("--ids", default="")
     ap.add_argument("--opt-model", default="opus")
     ap.add_argument("--target-model", default="sonnet")
@@ -137,23 +166,26 @@ def main():
     ap.add_argument("--timeout", type=int, default=600)
     ap.add_argument("--seed", type=int, default=20261013)
     ap.add_argument("--rounds", type=int, default=1, help="target runs per side; round 2+ files get a .rN suffix")
-    ap.add_argument("--skill", default=str(SKILL), help="optimizer SKILL.md to test (default: the live one)")
+    ap.add_argument("--skill", default="", help="optimizer SKILL.md to test (default: the one for --lang)")
     ap.add_argument("--resume", action="store_true", help="reuse usable outputs already in --out; rerun only missing or quota-error ones")
     args = ap.parse_args()
 
+    L = LANGS[args.lang]
+    skill = Path(args.skill) if args.skill else L["skill_dir"] / "SKILL.md"
+    methods = skill.parent / "references" / "methods.md"
+    cases_file = L["cases"]
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
-    cases = json.loads((HERE / "cases.json").read_text(encoding="utf-8"))["cases"]
+    cases = json.loads(cases_file.read_text(encoding="utf-8"))["cases"]
     if args.ids:
         wanted = set(args.ids.split(","))
         cases = [c for c in cases if c["id"] in wanted]
 
     opt_system = out / "optimizer_system.md"
-    skill = Path(args.skill)
-    opt_system.write_text(skill.read_text(encoding="utf-8") + "\n\n---\n\n# 附：references/methods.md（技能目录中的参考文件）\n\n"
-                          + METHODS.read_text(encoding="utf-8"), encoding="utf-8")
+    opt_system.write_text(skill.read_text(encoding="utf-8") + "\n\n---\n\n" + L["appendix"] + "\n\n"
+                          + methods.read_text(encoding="utf-8"), encoding="utf-8")
     neutral = out / "neutral_system.txt"
-    neutral.write_text(NEUTRAL_SYSTEM, encoding="utf-8")
+    neutral.write_text(L["neutral"], encoding="utf-8")
 
     # Stage 1: optimizer runs.
     with cf.ThreadPoolExecutor(args.workers) as pool:
@@ -193,8 +225,8 @@ def main():
 
     rng = random.Random(args.seed)
     manifest = {
-        "skill_sha256": sha256(skill), "methods_sha256": sha256(METHODS),
-        "cases_sha256": sha256(HERE / "cases.json"),
+        "lang": args.lang, "skill_sha256": sha256(skill), "methods_sha256": sha256(methods),
+        "cases_sha256": sha256(cases_file),
         "optimizer_model": args.opt_model, "target_model": args.target_model,
         "started_note": "single run per case; no repetition", "cases": {},
     }
@@ -217,11 +249,12 @@ def main():
                 order = ["raw", "optimized"]
                 rng.shuffle(order)
                 blind_key[cid + sfx] = {"A": order[0], "B": order[1]}
+                title, h_task, h_mat, none, h_crit, h_a, h_b = L["blind"]
                 (out / f"{cid}{sfx}.blind.md").write_text(
-                    f"# {cid}{sfx} 盲评（A/B 顺序随机）\n\n## 任务\n\n{c['effect']['task']}\n\n## 材料\n\n{c['effect'].get('material') or '（无）'}\n\n"
-                    f"## 评判标准\n\n" + "\n".join(f"- {x}" for x in c["effect"]["criteria"]) +
-                    f"\n\n## 结果 A\n\n{pair[order[0]]}\n\n## 结果 B\n\n{pair[order[1]]}\n", encoding="utf-8")
-        entry["mechanical"] = mechanical_checks(cid, opt[cid]["text"], outputs)
+                    f"# {cid}{sfx} {title}\n\n## {h_task}\n\n{c['effect']['task']}\n\n## {h_mat}\n\n{c['effect'].get('material') or none}\n\n"
+                    f"## {h_crit}\n\n" + "\n".join(f"- {x}" for x in c["effect"]["criteria"]) +
+                    f"\n\n## {h_a}\n\n{pair[order[0]]}\n\n## {h_b}\n\n{pair[order[1]]}\n", encoding="utf-8")
+        entry["mechanical"] = mechanical_checks(cid, opt[cid]["text"], outputs, args.lang)
         manifest["cases"][cid] = entry
     (out / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=1), encoding="utf-8")
     (out / "blind_key.json").write_text(json.dumps(blind_key, ensure_ascii=False, indent=1), encoding="utf-8")

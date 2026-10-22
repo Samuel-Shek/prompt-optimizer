@@ -1,149 +1,175 @@
 # prompt-optimizer
 
-把随手写的需求或已有的提示词，改成一份可以直接复制给 AI 用的提示词。它只改提示词，不替你去做提示词里的事。
+**English** · [简体中文](README.zh-CN.md)
 
-当前版本 **v3.5.0** · MIT 许可 · [版本记录](CHANGELOG.md) · [验证记录](VALIDATION.md)
+Turn a rough request, or a prompt you already have, into one prompt you can paste straight into an AI. It only rewrites the prompt. It doesn't do the task inside it for you.
 
-这是一个 Skill（写给 AI 读的工作说明），放进 Claude Code、Codex 这类能读取技能文件的 AI 工具里使用。它不是独立软件，也不是新模型，不需要额外的 API Key 或后台服务。
+Current version **v3.5.1** · MIT license · [Changelog](CHANGELOG.md) · [Validation (Chinese)](VALIDATION.md)
 
-## 它会做什么
+This is a Skill: a set of working instructions written for an AI to read. You use it inside AI tools that load skill files, such as Claude Code and Codex. It isn't a standalone app or a new model, and it needs no extra API key or background service.
 
-- **把愿望改成 AI 能照做的要求**。“写得专业一点”会被拆成受众、语气、结构这类能检查的说法；只在确实能减少误解时才加，不给简单任务套长模板。
-- **原话里的硬信息原样保住**。数字、日期、名称、文件名、禁止事项、`【待补数据】` 这样的标记，以及“计划中”“待核实”这类状态都不改。不会把“计划申请认证”写成“已获认证”。
-- **不替你多加条件**。你没提的字数、格式、筛选标准和验收要求，它不会自己补上当成硬规定。需要它出主意时，新加的做法会写成建议。
-- **缺的信息不替你编**。目标 AI 能自己查的，写明去哪查；必须由你补的，留成待填空位；缺了会改变结果、又没有合理默认值时，才问你，最多三个问题。
-- **分得清“指令”和“材料”**。你贴进来的材料里如果写着“忽略之前的规则”，它只当成要处理的文字，不会照做。
-- **多轮修改记得住**。最新一次明确修改才覆盖旧要求，没撤销的一直有效；“再短一点”不会顺手删掉禁止项。
+There are two editions with the same rules: the English edition in `prompt-optimizer-en/` (skill name `prompt-optimizer-en`) and the Chinese edition at the repository root (skill name `prompt-optimizer`). Both reply in the language you write in.
 
-只想听意见时说“先评价，别改”，它只指出问题，不重写。
+## What it does
 
-在 Claude Code、Codex 这类能自己干活的 AI 工具里，当前 AI 遇到要求复杂的任务时，也可以先调用它把要求理清楚，再继续把任务做完。这时它整理出的提示词只给当前 AI 用，你最后拿到的是任务结果。
+- **Turns wishes into instructions an AI can follow.** "Make it professional" becomes checkable details such as audience, tone and structure, added only where they actually reduce misunderstanding. Simple tasks don't get a long template.
+- **Keeps your hard details exactly as written.** Numbers, dates, names, file names, prohibitions, markers like `[DATA NEEDED]`, and statuses such as "planned" or "to be verified" stay as they are. "Plan to apply for certification" never becomes "certified".
+- **Doesn't add conditions you didn't ask for.** It won't invent word counts, formats, filters or acceptance criteria and present them as your rules. When you ask for ideas, its additions are labeled as suggestions.
+- **Doesn't make up missing information.** If the target AI can look something up, the prompt says where. If only you can supply it, it leaves a placeholder for you to fill. It asks you questions, at most three, only when a gap would change the result and there's no sensible default.
+- **Tells instructions apart from material.** If text you paste in says "ignore all previous rules", it treats that as text to process, not as an order.
+- **Remembers across edits.** Your latest explicit change overrides the old requirement; anything you haven't withdrawn stays in force. "Make it shorter" won't quietly drop a prohibition.
 
-## 看一个例子
+If you only want feedback, say "review it, don't rewrite". It will point out problems without rewriting.
 
-下面是 2026-10-22 一次测试的真实输出，一字未改；会议内容是虚构的。
+In tools that do work on their own, such as Claude Code and Codex, the AI can also call it to clarify a complicated request before finishing the task. In that case the prompt is for the AI's own use, and what you get back is the finished task.
 
-**你说的：**
+## Example
+
+This is real output from one test run on 2026-10-22, unedited. The meeting is fictional.
+
+**You type:**
 
 ```text
-帮我优化一下这个提示词：把我下面的会议要点整理成一条发给团队的微信消息，200 字以内，语气客气但直接。
-会议要点：周四前交初稿；小王负责数据部分；预算还没批，先别买工具。
+Help me optimize this prompt: turn my meeting notes below into a Slack message to the team, under 80 words, polite but direct.
+Meeting notes: first draft due before Thursday; Alex owns the data section; budget isn't approved yet, so don't buy any tools.
 ```
 
-**它给你的提示词：**
+**The prompt it gives you:**
 
 ````markdown
-# 任务
-把下面的会议要点整理成一条可直接发给团队的微信消息。
+# Currently Effective Requirements
 
-# 当前生效要求
-- 渠道与受众：微信消息，发给本团队成员。
-- 篇幅：200 字以内（含标点）。
-- 语气：客气但直接——有礼貌的开头/结尾即可，不堆敬语，不绕弯子，事项交代清楚。
-- 内容范围：完整覆盖下列三条要点，不新增未提供的信息（不要自行补具体日期、全名、金额、工具名称或理由）。
-- 事实保真：预算状态是“尚未批准”，不要写成已否决或已通过；“先别买工具”是当前暂缓，不是永久禁止。
-- 责任人：只保留已明确的分工（数据部分由小王负责）；原文未指明责任人的事项，不要擅自指派给某人。
-- 格式：纯文本，适合微信直接粘贴发送；可用换行分条，不使用 Markdown 标记（如 #、*、**）。
-- 输出：只输出这条消息正文本身，不加说明、标题或备选版本。
+## Task
+Turn the meeting notes below into a single Slack message for the team.
 
-# 会议要点（待整理内容）
-1. 周四前交初稿。
-2. 小王负责数据部分。
-3. 预算还没批，先别买工具。
+## Output
+- One ready-to-post Slack message, nothing else (no preamble, options, or commentary).
+- Under 80 words.
+- Tone: polite but direct — courteous, no filler or over-apologizing.
+- Plain Slack-friendly text; light formatting (short lines, bullets, bold) is optional as long as the word limit holds.
+
+## Content rules
+- Cover all three points from the notes:
+  1. First draft is due before Thursday.
+  2. Alex owns the data section.
+  3. Budget is not yet approved, so no tool purchases.
+- Keep facts exactly as stated. Do not add deadlines, owners, approvals, next steps, or meeting details that are not in the notes.
+- Keep the budget status as "not yet approved" (pending) — do not imply it was rejected or approved.
+- Keep "don't buy any tools" as a clear instruction to the team, not a suggestion.
+- "Before Thursday" means the draft is due ahead of Thursday; do not restate it as "on Thursday".
+
+## Meeting notes (source material)
+- First draft due before Thursday
+- Alex owns the data section
+- Budget isn't approved yet, so don't buy any tools
 
 ---
 
-# 原始输入（核对用，不单独执行）
-把我下面的会议要点整理成一条发给团队的微信消息，200 字以内，语气客气但直接。
-会议要点：周四前交初稿；小王负责数据部分；预算还没批，先别买工具。
+# Original Input (for reference)
+
+turn my meeting notes below into a Slack message to the team, under 80 words, polite but direct.
+Meeting notes: first draft due before Thursday; Alex owns the data section; budget isn't approved yet, so don't buy any tools.
 ````
 
-**同一个 AI 分别拿原话和这份提示词去写，结果是：**
+**The same AI (Claude Sonnet) then ran your original request and this prompt:**
 
-| 直接用原话 | 用优化后的提示词 |
+| Your original request | The optimized prompt |
 |---|---|
-| 多写了“有相关问题可以直接找他对接”“等审批结果出来后再统一安排”，会议里没说过这两件事；还用了 `**加粗**`，贴进微信会显示成星号 | 三条要点照原样写清，没有多加事项，纯文本可以直接粘贴 |
+| Hi team! 👋 Quick recap from our meeting:<br><br>• **First draft is due before Thursday** — please plan accordingly.<br>• **Alex** will own the **data section**.<br>• **Budget isn't approved yet**, so please hold off on purchasing any tools for now.<br><br>Let me know if you have questions. Thanks for your hard work! | Hi team, quick update:<br><br>• First draft is due **before Thursday**<br>• **Alex** owns the data section<br>• Budget hasn't been approved yet, so please **don't purchase any tools** for now<br><br>Thanks all! |
 
-这只是一次运行的结果。简单任务直接问，很多时候也能写对。
+Both are usable here. The optimized version is shorter and more direct, without the "thanks for your hard work" filler. This is one run of one simple task, and simple tasks often work fine without optimizing.
 
-## 安装
+## Install
 
-1. 下载：
+**Claude Code (plugin marketplace)**
+
+```text
+/plugin marketplace add Samuel-Shek/prompt-optimizer
+/plugin install prompt-optimizer-en@prompt-optimizer
+```
+
+For the Chinese edition, install `prompt-optimizer@prompt-optimizer` instead.
+
+**Manual install**
+
+1. Download:
 
    ```bash
-   git clone --branch v3.5.0 --depth 1 https://github.com/Samuel-Shek/prompt-optimizer.git
+   git clone --branch v3.5.1 --depth 1 https://github.com/Samuel-Shek/prompt-optimizer.git
    ```
 
-   也可以在[发布页](https://github.com/Samuel-Shek/prompt-optimizer/releases/tag/v3.5.0)下载压缩包。
+   Or download the archive from the [release page](https://github.com/Samuel-Shek/prompt-optimizer/releases/tag/v3.5.1).
 
-2. 把整个 `prompt-optimizer` 文件夹放进 AI 工具的技能目录，保留里面的 `references/` 和 `agents/`。常见位置：Claude Code 是 `~/.claude/skills/`，Codex 是 `~/.agents/skills/`，WorkBuddy 是 `~/.workbuddy/skills/`，以各工具当前文档为准。已经装过同名技能的，先看清版本，别把自己改过的内容覆盖掉。
+2. Copy the `prompt-optimizer-en` folder into your AI tool's skills folder, keeping its `references/` and `agents/` subfolders. Common locations: `~/.claude/skills/` for Claude Code, `~/.agents/skills/` for Codex. Check your tool's current docs.
 
-3. 新开一个会话，让工具重新读取技能。
+3. Start a new session so the tool loads the skill.
 
-## 怎么用
+**ChatGPT GPTs, Claude Projects or any chat app:** paste the contents of [`prompt-optimizer-en/SKILL.md`](prompt-optimizer-en/SKILL.md) into the custom instructions. In this setup, every task you send is treated as something to turn into a prompt.
 
-直接说“帮我优化这个提示词”，或者点名调用：
+## Usage
+
+Say "optimize this prompt", or call it by name:
 
 ```text
-使用 $prompt-optimizer：帮我写一条研究提示词，比较三种笔记工具。
-目标是 ChatGPT 网页端。只用公开资料，区分事实和判断，保留来源日期。
-不要注册账号、购买产品或替我作个人选择。
+Use $prompt-optimizer-en: write a research prompt comparing three note-taking apps.
+Target: ChatGPT on the web. Public sources only, separate facts from opinions, keep source dates.
+Don't sign up for accounts, buy anything, or make personal choices for me.
 ```
 
 ```text
-先评价，别改：
-（粘贴待审阅提示词）
+Review it, don't rewrite:
+(paste the prompt to review)
 ```
 
-可以在请求里加这些写法，都不是必需的：
+Optional shortcuts:
 
-| 写法 | 作用 |
+| Shortcut | What it does |
 |---|---|
-| `+讲解` | 在终稿后附最多 5 条关键改动说明 |
-| `+提问` | 允许它先问最多 3 个必要问题再动笔 |
-| `+双版` | 给两个用途不同的版本 |
-| `@目标=模型或环境` | 按指定模型或工具调整写法，例如 `@目标=Claude Code` |
+| `+explain` | Adds up to 5 notes on the key changes after the final prompt |
+| `+ask` | Lets it ask up to 3 necessary questions first |
+| `+two` | Gives two versions with different purposes |
+| `@target=model or tool` | Adapts the wording to a model or tool, e.g. `@target=Claude Code` |
 
-### 输出长什么样
+### What the output looks like
 
-默认是一份可复制的提示词，分两部分：前面是“当前生效要求”，目标 AI 按这部分执行；后面附上你的原话，标为“原始输入（核对用）”，方便执行的 AI 回头核对原意、发现遗漏。所以终稿通常比原话长，这是有意的设计。
+By default you get one copyable prompt in two parts. First come the "Currently Effective Requirements", which the target AI follows. Then comes your original wording, marked "Original Input (for reference)", so whoever runs it can check the original intent and catch anything missed. That's why the final prompt is usually longer than what you typed. It's deliberate.
 
-## 什么时候不用
+## When not to use it
 
-- **简单任务直接问 AI 更省事**。一句话翻译、一条短消息，优化后的提示词会比原话长不少，最后结果和直接问差不多。
-- **它不做任务本身**。要的是分析结果、文章或代码，就直接让 AI 去做；只有你想先把要求理清楚、要反复用同一份提示词、或者任务有很多硬性限制时，先优化才划算。
+- **Simple tasks are easier to ask directly.** For a one-line translation or a short message, the optimized prompt is much longer than your request and the result is about the same.
+- **It doesn't do the task.** If you want the analysis, article or code, ask the AI for it directly. Optimizing first pays off when you want to pin down requirements, reuse the same prompt, or the task has many hard constraints.
 
-## 已知局限
+## Known limitations
 
-- **输出偏长**。优化后的提示词通常是原话的五到十倍长，一部分是附在后面的原话。这是为了方便核对，代价是复制的内容变多。
-- **留了待填空位就要填**。原话缺信息时，它会留下 `{{待填写：……}}` 这样的空位。不填就直接交给 AI，AI 的回答容易变成套模板、反复说明“这里还没填”。
-- **偶尔仍会多加限制**。测试里仍出现过给客服回复加上原话没有的句数上限，或者要求每个 `【待补数据】` 标记后面加括注。交付前最好扫一眼“当前生效要求”，删掉你不想要的条目。
-- **不保证目标 AI 照做**。提示词写得再清楚，执行的 AI 也可能漏项或多写；重要的输出仍要自己核对。
-- **测试规模小**。目前的验证只用过二十道左右的虚构题，模型以 Claude 和 GPT 为主；在其他模型或长期使用中的表现没有系统测过。
+- **Long output.** The optimized prompt is usually five to ten times longer than your request, partly because your original wording is attached for checking.
+- **Placeholders need filling.** When information is missing, it leaves slots like `{{TO FILL: ...}}`. If you send the prompt without filling them, the AI's answer tends to become generic.
+- **It sometimes still adds limits.** In the English test run it widened a banned-word list to cover word variants, and in a few cases it put a short note before or after the prompt. Skim the "Currently Effective Requirements" and delete anything you don't want.
+- **No guarantee the target AI complies.** However clear the prompt, the AI running it can still miss or add things. Check important output yourself.
+- **Small test set.** Validation so far uses 16 fictional cases per language, mainly on Claude and GPT models. Other models and long-term use haven't been tested systematically.
 
-测试方法和完整数字见[验证记录](VALIDATION.md)和[考卷说明](evals/README.md)。
+## Tests
 
-## 版本
+`evals/` holds 16 fictional test cases in each language (`cases.en.json`, and `cases.json` in Chinese) and a runner that gives the same target model your original request and the optimized prompt, then saves both results in random order for blind review:
 
-- **v3.5.0（当前）**：减少擅自增加条件。改写时区分“你原本的要求”“等义的澄清”和“它新加的建议”；没有依据就不添加数量、格式、筛选或验收条件；交付前同时检查有没有漏掉要求、有没有多加限制。发布后在 Claude 上和 v3.4.0 同场重测了 16 道题，没有发现稳定变差的地方，详见[验证记录](VALIDATION.md)。
-- 想回到上一版：
+```bash
+python3 evals/run_eval.py --lang en --out ./eval-out --opt-model opus --target-model sonnet
+```
 
-  ```bash
-  git clone --branch v3.4.0 --depth 1 https://github.com/Samuel-Shek/prompt-optimizer.git prompt-optimizer-v3.4
-  ```
+It needs the Claude Code CLI. The script only records outputs and runs a few mechanical checks; a person judges the results. Details are in [evals/README.md](evals/README.md) and [VALIDATION.md](VALIDATION.md) (Chinese).
 
-  这条命令会下载到另一个目录，不会直接覆盖现有安装，核对后再按工具的方式替换。
+## Feedback
 
-历次改动见[版本记录](CHANGELOG.md)。
+The most useful feedback is a real case where it got something wrong. [Open a bad-case issue](https://github.com/Samuel-Shek/prompt-optimizer/issues/new?template=bad-case.yml) with your input, what it returned and what you expected. Confirmed cases are anonymized and added to `evals/`, so every later version is tested against them. Ideas and questions go to [Discussions](https://github.com/Samuel-Shek/prompt-optimizer/discussions).
 
-## 与 Ego Lite、ChatGPT Pro 组合
+## Versions
 
-这个优化器也可以作为一套研究流程的第一步：当前 AI 先用它整理任务，再交给 ChatGPT 的 Pro 模型做研究，最后由当前 AI 核验并交付。完整组合包见 [ego-pro-research](https://github.com/Samuel-Shek/ego-pro-research)。优化器本身不依赖这套流程，也不负责操控浏览器。
+- **v3.5.1 (current):** adds the English edition `prompt-optimizer-en`, English test cases and Claude Code plugin install. The rules are unchanged.
+- **v3.5.0:** fewer self-invented conditions. It separates your original requirements, equivalent clarifications and its own suggestions, and doesn't add counts, formats, filters or acceptance criteria without a basis.
 
-## 设计参考与许可
+Full history: [CHANGELOG.md](CHANGELOG.md) (Chinese).
 
-设计时参考过多份公开的提示词优化资料，只借鉴思路，没有收入原文，详见[设计参考](docs/design-references.md)。`references/methods.md` 里的四种按需方法，出处写在该文件内。
+## Credits and license
 
-`SKILL.md` 是入口，`references/methods.md` 是按需方法，`agents/openai.yaml` 是可选的界面信息，`evals/` 是维护时用的考卷，不会注入生成的提示词。
+The design drew on several public prompt-optimization resources for ideas only; no text was copied. See [design references](docs/design-references.md) (Chinese). The four optional methods in `references/methods.md` credit their sources inside that file.
 
-本仓库原创内容采用 [MIT](LICENSE) 许可。外链的第三方资料归原权利人所有。
+Original content in this repository is under the [MIT](LICENSE) license. Linked third-party material belongs to its owners.

@@ -1,5 +1,14 @@
 # 版本记录
 
+## v3.5.1 · 2026-10-22
+
+- 新增英文版 `prompt-optimizer-en/`：由 v3.5.0 中文规则逐节翻译，规则不变；快捷写法中英文都认（如 `+explain` / `+讲解`）。
+- 新增英文考卷 `evals/cases.en.json`（16 题，与中文考卷同编号、同考点，材料均为虚构）；`run_eval.py` 增加 `--lang en|zh`，默认仍跑中文。
+- 新增 Claude Code 插件市场配置 `.claude-plugin/marketplace.json`，可一行命令安装中文版或英文版。
+- 新增失败案例反馈表单（`.github/ISSUE_TEMPLATE/`）。
+- README 改为英文首页，原中文 README 移到 `README.zh-CN.md`，内容保留并补充英文版、插件安装和反馈入口。
+- 中文版 `SKILL.md`、`references/`、`agents/` 没有改动。英文版 16 题实测见 [VALIDATION.md](VALIDATION.md)。
+
 ## v3.5.0 · 2026-10-22
 
 - 将经过单轮四题比较的 3.5-c3 提升为正式 3.5。仅调整候选版本标识并增加版本元数据，规则保持候选内容。
