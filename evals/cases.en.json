@@ -266,9 +266,74 @@
           "Roughly 650–1,000 words, understandable to general readers"
         ]
       }
+    },
+    {
+      "id": "N01",
+      "group": "dev",
+      "type": "banned words kept exactly (no widening)",
+      "optimizer_input": "Optimize this prompt: write a product description for our new standing desk, about 150 words, for an online store. Don't use the words \"innovative\", \"revolutionary\" or \"seamless\".",
+      "opt_checks": [
+        "The banned list is exactly \"innovative\", \"revolutionary\", \"seamless\"",
+        "Does not extend the ban to inflected forms, synonyms or related words (e.g. innovation, seamlessly, groundbreaking) as a hard rule",
+        "Keeps about 150 words, product description, online store"
+      ],
+      "effect": {
+        "task": "Write a product description for our new standing desk, about 150 words, for an online store. Don't use the words \"innovative\", \"revolutionary\" or \"seamless\".",
+        "material": "",
+        "criteria": [
+          "Does not use the three banned words",
+          "Roughly 120–180 words",
+          "Invents no specific specs presented as facts beyond generic standing-desk features, or marks them"
+        ]
+      },
+      "mech": {
+        "banned": [
+          "innovative",
+          "revolutionary",
+          "seamless"
+        ],
+        "widen_signals": [
+          "inflect",
+          "variant",
+          "form of",
+          "forms of",
+          "synonym",
+          "seamlessly",
+          "innovation",
+          "groundbreaking",
+          "cutting-edge"
+        ]
+      }
+    },
+    {
+      "id": "N02",
+      "group": "dev",
+      "type": "relative dates kept as written",
+      "optimizer_input": "Optimize this prompt: write a short email to our suppliers asking them to confirm their delivery quantities by the end of the month, and let them know our updated price list goes out next Monday. Keep it friendly and under 120 words.",
+      "opt_checks": [
+        "Keeps \"by the end of the month\" and \"next Monday\" as written",
+        "Does not ask for, invent or placeholder a specific calendar date for them, and does not cite them as examples of missing information",
+        "Keeps friendly tone and under 120 words"
+      ],
+      "effect": {
+        "task": "Write a short email to our suppliers asking them to confirm their delivery quantities by the end of the month, and let them know our updated price list goes out next Monday. Keep it friendly and under 120 words.",
+        "material": "",
+        "criteria": [
+          "Says \"end of the month\" and \"next Monday\" (or exact equivalents), not converted to calendar dates",
+          "No placeholder in place of either time",
+          "Under 120 words, friendly"
+        ]
+      },
+      "mech": {
+        "keep": [
+          "end of the month",
+          "next monday"
+        ]
+      }
     }
   ],
   "changelog": [
-    "2026-10-22 English edition created from cases.json (same IDs and intent). Word limits were adapted for English (C01 80 words, H03 120 words, H04 800 words), C03/C11 target languages changed to Spanish/French so the target language still differs from the prompt language, and names and amounts were localized. All material remains fictional."
+    "2026-10-22 English edition created from cases.json (same IDs and intent). Word limits were adapted for English (C01 80 words, H03 120 words, H04 800 words), C03/C11 target languages changed to Spanish/French so the target language still differs from the prompt language, and names and amounts were localized. All material remains fictional.",
+    "2026-10-22 Added dev cases N01 (banned words not widened) and N02 (relative dates kept) for tuning the 3.5.2 candidate; H04 surfaced the issue and is no longer independent for it."
   ]
 }

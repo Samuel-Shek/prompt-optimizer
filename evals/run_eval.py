@@ -121,7 +121,7 @@ def extract_prompt(case_id, reply):
     return reply
 
 
-def mechanical_checks(case_id, opt_reply, target_outputs, lang):
+def mechanical_checks(case_id, opt_reply, target_outputs, lang, case=None):
     """A few objective checks; everything else is judged by reading."""
     out = {}
     L = LANGS[lang]
@@ -152,6 +152,15 @@ def mechanical_checks(case_id, opt_reply, target_outputs, lang):
             out[f"{side}_placeholder_count"] = text.count(L["placeholder"])
             out[f"{side}_chars"] = len(text)
             out[f"{side}_words"] = len(text.split())
+        if case and case.get("mech", {}).get("banned"):
+            out[f"{side}_banned_words"] = [w for w in case["mech"]["banned"] if w.lower() in text.lower()]
+        if case and case.get("mech", {}).get("keep"):
+            low = text.lower()
+            out[f"{side}_kept"] = [w for w in case["mech"]["keep"] if w.lower() in low]
+            out[f"{side}_placeholder"] = bool(re.search(r"\[[^\]]*\]|\{\{|【[^】]*】", text))
+    if case and case.get("mech", {}).get("widen_signals"):
+        prompt = extract_prompt(case_id, opt_reply).lower()
+        out["optimizer_widen_signals"] = [w for w in case["mech"]["widen_signals"] if w.lower() in prompt]
     return out
 
 
@@ -254,7 +263,7 @@ def main():
                     f"# {cid}{sfx} {title}\n\n## {h_task}\n\n{c['effect']['task']}\n\n## {h_mat}\n\n{c['effect'].get('material') or none}\n\n"
                     f"## {h_crit}\n\n" + "\n".join(f"- {x}" for x in c["effect"]["criteria"]) +
                     f"\n\n## {h_a}\n\n{pair[order[0]]}\n\n## {h_b}\n\n{pair[order[1]]}\n", encoding="utf-8")
-        entry["mechanical"] = mechanical_checks(cid, opt[cid]["text"], outputs, args.lang)
+        entry["mechanical"] = mechanical_checks(cid, opt[cid]["text"], outputs, args.lang, c)
         manifest["cases"][cid] = entry
     (out / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=1), encoding="utf-8")
     (out / "blind_key.json").write_text(json.dumps(blind_key, ensure_ascii=False, indent=1), encoding="utf-8")

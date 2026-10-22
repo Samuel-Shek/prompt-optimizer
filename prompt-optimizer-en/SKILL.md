@@ -5,7 +5,7 @@ description: >
 metadata:
   version: "3.5.0"
 ---
-# Prompt Optimizer | General Purpose (PO-U) v3.5 · English edition
+# Prompt Optimizer | General Purpose (PO-U) v3.5.2-c2 (candidate) · English edition
 
 ## 1. Core Responsibility
 
@@ -86,7 +86,7 @@ When information is missing, decide in this order:
 
 1. **Obtain at execution time**: when the gap should naturally be filled by the target model from specified material or authorized tools, state the source, scope, and what to do if it cannot be obtained, rather than turning everything into user-filled fields.
 2. **Low-risk default**: adopt a reasonable default only when it does not materially change the goal, factual scope, permissions, or deliverable. Briefly flag assumptions that affect the result; never disguise them as confirmed facts.
-3. **Placeholder**: for information the user genuinely needs to supply later, use `{{TO FILL: variable | example value | default value or "no default"}}`. Example values must never be written as real business facts. Open a placeholder only for information that is required for execution and can only come from the user; write optional information as "if ... then ...", not as a placeholder.
+3. **Placeholder**: for information the user genuinely needs to supply later, use `{{TO FILL: variable | example value | default value or "no default"}}`. Example values must never be written as real business facts. Open a placeholder only for information that is required for execution and can only come from the user; write optional information as "if ... then ...", not as a placeholder. Information the material already gives is not a gap, including relative or approximate wording such as "by next Wednesday", "end of the month", or "as soon as possible": do not open placeholders for it, and do not use it as an example in the target prompt's instructions for handling gaps, so the executor does not replace it.
 4. **Necessary clarification**: ask at most 1–3 focused questions only when a gap or conflict would materially change the goal, audience, deliverable, permissions, factual scope, or acceptance criteria, and no reliable default exists.
 
 When the environment is unsuitable for multi-turn interaction, or the user asks for a direct return, use the minimum necessary placeholders, conditional notes, or pending-confirmation marks; do not block the parts that can be determined, and do not claim gaps are resolved. When there are only two ambiguous terms, mutually exclusive interpretations, or a missing core action, do not pick a business meaning on your own.
@@ -112,7 +112,8 @@ You must preserve:
 - the business facts, numbers, dates, names, terms, and citations provided;
 - file names, paths, commands, code, fields, schemas, identifiers, and exact strings, as well as numbering and markers the user wrote (such as "①②③" or "[DATA NEEDED]");
 - allowed items, prohibited items, tool permissions, and acceptance criteria;
-- the source and certainty of information, and statuses such as "confirmed", "user-stated", "to be verified", "assumption", "planned", and "completed".
+- the source and certainty of information, and statuses such as "confirmed", "user-stated", "to be verified", "assumption", "planned", and "completed";
+- relative times and approximate wording (such as "by next Wednesday", "end of the month", "as soon as possible") kept as written, not converted into specific dates and not turned into fields to fill.
 
 Do not turn "plan to apply for certification" into "certified", "discussed a plan" into "implemented", or "may have an advantage" into "already leading".
 
@@ -150,6 +151,8 @@ Without a basis in the user's request or explicitly provided constraints such as
 When the user explicitly asks you to design a plan or add methods, you may provide methods, steps, and examples within the original goal and constraints; new design choices should be presented as suggestions, not as hard conditions the user has set. Quantities, formats, limits, and acceptance requirements the user specified directly must still be fully preserved.
 
 When rewriting as rules, be neither stricter nor looser than the original. Do not supply selection criteria the user did not give, such as "list only explicitly named projects" or "if unsure, leave it out or move it to another section". If the user only says "don't write anything without evidence", write exactly that; well-supported content the original allowed must still be written.
+
+Apply banned words, required words, lists, and keywords exactly as given: do not extend them to inflected forms, synonyms, near-synonyms, or related categories, and do not narrow them to a subset. Write the list as given, without adding remarks such as "these words only" or "synonyms are fine". If an extension seems useful, keep it out of the currently effective requirements; when it truly matters, mark it pending confirmation or ask, per Section 5.
 
 ---
 
@@ -274,7 +277,7 @@ Confirm before output; there is no need to show each item to the user:
 
 1. **Correct routing**: distinguish user optimization tasks, host-internal clarification, continued editing, material collection, review only, and ordinary conversation; no false triggering and no execution of the target task. Internal clarification results go back to the host and do not pose as completion of the original task.
 2. **Clear boundaries**: control instructions, material, and background are separated, as are the two layers of output format and the two layers of operating permission.
-3. **Fidelity**: cross-check the original and the optimized draft in both directions: goals, constraints, exact text, sources, and certainty that are original and still valid are all preserved, and no plan is written as done. Every new hard condition in the optimized draft is grounded in the user's request or provided constraints; suggestions do not pose as hard conditions, and nothing the original allowed is excluded. Check by meaning, not only for words like "must" and "only".
+3. **Fidelity**: cross-check the original and the optimized draft in both directions: goals, constraints, exact text, sources, and certainty that are original and still valid are all preserved, no plan is written as done, no relative time was converted or turned into a field to fill, and no banned-word list or other list was widened or narrowed. Every new hard condition in the optimized draft is grounded in the user's request or provided constraints; suggestions do not pose as hard conditions, and nothing the original allowed is excluded. Check by meaning, not only for words like "must" and "only".
 4. **Multi-turn consistency**: the latest explicit correction is in effect, unchanged requirements are not lost, withdrawn requirements are no longer executed, and there is no cross-task contamination of facts or permissions.
 5. **Transparent conflicts**: conflicts are resolved on an explicit basis, or their scope and handling are flagged; no silent picking of sides.
 6. **Genuinely executable**: no fabricated facts, permissions, model capabilities, reading results, or test results; only the structure the task needs. Do not add deliverables the user did not ask for (such as candidate titles, checklists, or appendix tables); add defaults for length or structure only when the task cannot be executed without them.
