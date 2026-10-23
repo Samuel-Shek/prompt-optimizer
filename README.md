@@ -4,7 +4,7 @@
 
 Turn a rough request, or a prompt you already have, into one prompt you can paste straight into an AI. It only rewrites the prompt. It doesn't do the task inside it for you.
 
-Current version **v3.5.2** · MIT license · [Changelog](CHANGELOG.md) · [Validation (Chinese)](VALIDATION.md)
+Current version **v3.5.3** · MIT license · [Changelog](CHANGELOG.md) · [Validation (Chinese)](VALIDATION.md)
 
 This is a Skill: a set of working instructions written for an AI to read. You use it inside AI tools that load skill files, such as Claude Code and Codex. It isn't a standalone app or a new model, and it needs no extra API key or background service.
 
@@ -95,10 +95,10 @@ For the Chinese edition, install `prompt-optimizer@prompt-optimizer` instead.
 1. Download:
 
    ```bash
-   git clone --branch v3.5.2 --depth 1 https://github.com/Samuel-Shek/prompt-optimizer.git
+   git clone --branch v3.5.3 --depth 1 https://github.com/Samuel-Shek/prompt-optimizer.git
    ```
 
-   Or download the archive from the [release page](https://github.com/Samuel-Shek/prompt-optimizer/releases/tag/v3.5.2).
+   Or download the archive from the [release page](https://github.com/Samuel-Shek/prompt-optimizer/releases/tag/v3.5.3).
 
 2. Copy the `prompt-optimizer-en` folder into your AI tool's skills folder, keeping its `references/` and `agents/` subfolders. Common locations: `~/.claude/skills/` for Claude Code, `~/.agents/skills/` for Codex. Check your tool's current docs.
 
@@ -142,8 +142,8 @@ By default you get one copyable prompt in two parts. First come the "Currently E
 ## Known limitations
 
 - **Long output.** The optimized prompt is usually five to ten times longer than your request, partly because your original wording is attached for checking.
-- **Placeholders need filling.** When information is missing, it leaves slots like `{{TO FILL: ...}}`. If you send the prompt without filling them, the AI's answer tends to become generic.
-- **It sometimes still adds limits.** In tests it sometimes put a short note before or after the prompt, or added a remark such as "these words only" to a banned-word list. Skim the "Currently Effective Requirements" and delete anything you don't want.
+- **Placeholders.** When information is missing, it leaves slots like `{{TO FILL: ...}}` and tells the AI how to handle them if you leave them empty. Small gaps (a greeting, a signature) are written generically; if a task gives no key information at all (for example a product description with no product details), the AI will stop and ask you rather than invent details.
+- **Occasional slips.** In tests a simple task sometimes still got subheadings, and the executing model did not always follow a request for full-width Chinese punctuation in long articles. Skim the "Currently Effective Requirements" and delete anything you don't want.
 - **No guarantee the target AI complies.** However clear the prompt, the AI running it can still miss or add things. Check important output yourself.
 - **Small test set.** Validation so far uses 16 fictional cases per language, mainly on Claude and GPT models. Other models and long-term use haven't been tested systematically.
 
@@ -163,7 +163,8 @@ The most useful feedback is a real case where it got something wrong. [Open a ba
 
 ## Versions
 
-- **v3.5.2 (current):** keeps banned-word lists and relative times such as "by next Wednesday" exactly as you wrote them. Earlier versions sometimes widened a banned list to word variants or turned relative times into placeholders for a specific date.
+- **v3.5.3 (current):** placeholder examples describe a category instead of looking like real names, and prompts say what to do when a placeholder is left unfilled (deliver, mark the gap, never use the example as real). No notes or lead-in lines outside the prompt; strict JSON with no code fence; simple tasks get short prompts; prompts for Chinese output ask for full-width punctuation.
+- **v3.5.2:** keeps banned-word lists and relative times such as "by next Wednesday" exactly as you wrote them. Earlier versions sometimes widened a banned list to word variants or turned relative times into placeholders for a specific date.
 - **v3.5.1:** adds the English edition `prompt-optimizer-en`, English test cases and Claude Code plugin install. The rules are unchanged.
 - **v3.5.0:** fewer self-invented conditions. It separates your original requirements, equivalent clarifications and its own suggestions, and doesn't add counts, formats, filters or acceptance criteria without a basis.
 
