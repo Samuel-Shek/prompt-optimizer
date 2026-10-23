@@ -96,7 +96,7 @@ def reuse(path):
 
 def extract_prompt(case_id, reply):
     """Pull the deliverable prompt out of the optimizer reply."""
-    if case_id == "C03":
+    if case_id in ("C03", "N05"):
         try:
             return json.loads(reply)["prompt"]
         except Exception:
@@ -167,6 +167,35 @@ def mechanical_checks(case_id, opt_reply, target_outputs, lang, case=None):
            "请提供", "需要您提供", "请补充", "需要以下信息", "提供以下信息"]
     for side, text in target_outputs.items():
         out[f"{side}_asked_for_info"] = any(s in text.lower() for s in ask)
+    m = (case or {}).get("mech", {})
+    if m.get("strict_opt_json"):
+        try:
+            obj = json.loads(opt_reply)
+            out["optimizer_pure_json_only_prompt"] = isinstance(obj, dict) and list(obj) == ["prompt"]
+        except Exception:
+            out["optimizer_pure_json_only_prompt"] = False
+    if m.get("target_json_keys"):
+        for side, text in target_outputs.items():
+            try:
+                obj = json.loads(text)
+                out[f"{side}_raw_json_ok"] = isinstance(obj, dict) and sorted(obj) == m["target_json_keys"]
+            except Exception:
+                out[f"{side}_raw_json_ok"] = False
+    if m.get("effective_split"):
+        prompt = extract_prompt(case_id, opt_reply)
+        cut = min([i for i in (prompt.find(s) for s in m["effective_split"]) if i >= 0] or [len(prompt)])
+        eff = prompt[:cut]
+        if cut < len(prompt):  # drop the partial line that holds the split marker
+            eff = eff[:eff.rfind("\n") + 1]
+        if m.get("carry"):
+            out["optimizer_carried"] = [w for w in m["carry"] if w.lower() in eff.lower()]
+        if "max_extra_headings" in m:
+            heads = [l for l in eff.split("\n") if re.match(r"^\s*#{1,6}\s", l)
+                     and not re.search(r"当前生效要求|Currently Effective", l, re.I)]
+            out["optimizer_extra_headings"] = len(heads)
+    if m.get("zh_fullwidth"):
+        for side, text in target_outputs.items():
+            out[f"{side}_halfwidth_punct"] = len(re.findall(r"[\u4e00-\u9fff][,.;:!?]|[,;:!?][\u4e00-\u9fff]", text))
     if case and case.get("mech", {}).get("widen_signals"):
         prompt = extract_prompt(case_id, opt_reply).lower()
         out["optimizer_widen_signals"] = [w for w in case["mech"]["widen_signals"] if w.lower() in prompt]

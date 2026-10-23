@@ -361,11 +361,87 @@
           "let me know the"
         ]
       }
+    },
+    {
+      "id": "N04",
+      "group": "dev",
+      "type": "constraint implied by a revocation reason",
+      "optimizer_input": "Keep editing the last version.\n[The prompt you delivered last time]\nWrite an onboarding guide for new hires, about 700 words, in five sections, each with a short caption describing an illustration, friendly tone.\n[Original input (for reference)]\nWrite a new-hire onboarding guide, around 700 words, five sections, a caption for an illustration in each section, friendly tone.\n[My edit this time]\nDrop the illustration captions, this one goes out as plain text only.",
+      "opt_checks": [
+        "Removes the illustration captions",
+        "Writes \"plain text only\" into the currently effective requirements (no images or visuals)",
+        "Keeps about 700 words, five sections, friendly tone",
+        "Original-input section keeps the initial wording and appends this edit, without nesting the previous final draft"
+      ],
+      "effect": null,
+      "mech": {
+        "carry": [
+          "plain text"
+        ],
+        "effective_split": [
+          "Original Input",
+          "Original input"
+        ]
+      }
+    },
+    {
+      "id": "N05",
+      "group": "dev",
+      "type": "strict JSON delivery + raw JSON target",
+      "optimizer_input": "Optimize the prompt below. Output only one JSON object whose only field is prompt, with no other text. Content to optimize: extract the product name, issue type and urgency from customer feedback and output JSON with the fields product, issue_type, urgency; use null for anything missing.",
+      "opt_checks": [
+        "The optimizer output is a single JSON object (first character {), only field prompt, no code fence or other text",
+        "Field names product, issue_type, urgency kept verbatim; null when missing",
+        "The prompt requires the target result to be raw JSON, not in a code block"
+      ],
+      "effect": {
+        "task": "Extract the product name, issue type and urgency from customer feedback and output JSON with the fields product, issue_type, urgency; use null for anything missing.",
+        "material": "Feedback: \"Your X3 robot vacuum has been throwing an error since yesterday and my elderly parents rely on it, please fix this as soon as you can.\"",
+        "criteria": [
+          "Output parses directly as JSON, with no code fence or commentary",
+          "Exactly these 3 fields",
+          "Values match the feedback, nothing invented"
+        ]
+      },
+      "mech": {
+        "strict_opt_json": true,
+        "target_json_keys": [
+          "issue_type",
+          "product",
+          "urgency"
+        ]
+      }
+    },
+    {
+      "id": "N06",
+      "group": "dev",
+      "type": "simple task stays short",
+      "optimizer_input": "Optimize this prompt: write a short message reminding a coworker about tomorrow's 3 pm team meeting in room 301, casual tone.",
+      "opt_checks": [
+        "The currently effective requirements are a few short lines, with no subheadings and no role",
+        "Keeps tomorrow, 3 pm, room 301, team meeting, casual tone"
+      ],
+      "effect": {
+        "task": "Write a short message reminding a coworker about tomorrow's 3 pm team meeting in room 301, casual tone.",
+        "material": "",
+        "criteria": [
+          "Time, place and meeting correct",
+          "Casual, ready to send"
+        ]
+      },
+      "mech": {
+        "max_extra_headings": 0,
+        "effective_split": [
+          "Original Input",
+          "Original input"
+        ]
+      }
     }
   ],
   "changelog": [
     "2026-10-22 English edition created from cases.json (same IDs and intent). Word limits were adapted for English (C01 80 words, H03 120 words, H04 800 words), C03/C11 target languages changed to Spanish/French so the target language still differs from the prompt language, and names and amounts were localized. All material remains fictional.",
     "2026-10-22 Added dev cases N01 (banned words not widened) and N02 (relative dates kept) for tuning the 3.5.2 candidate; H04 surfaced the issue and is no longer independent for it.",
-    "2026-10-23 Added dev case N03 (unfilled placeholders: deliver anyway, don't copy example values) for tuning the 3.5.3 candidate."
+    "2026-10-23 Added dev case N03 (unfilled placeholders: deliver anyway, don't copy example values) for tuning the 3.5.3 candidate.",
+    "2026-10-23 Added dev cases N04 (constraint implied by a revocation reason), N05 (strict JSON), N06 (simple task stays short) for 3.5.3 c3."
   ]
 }
