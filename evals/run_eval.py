@@ -158,6 +158,15 @@ def mechanical_checks(case_id, opt_reply, target_outputs, lang, case=None):
             low = text.lower()
             out[f"{side}_kept"] = [w for w in case["mech"]["keep"] if w.lower() in low]
             out[f"{side}_placeholder"] = bool(re.search(r"\[[^\]]*\]|\{\{|【[^】]*】", text))
+    lines = opt_reply.strip().split("\n")
+    fences = [i for i, l in enumerate(lines) if re.match(r"^\s*(`{3,}|~{3,})", l)]
+    if len(fences) >= 2:
+        outside = "\n".join(lines[:fences[0]] + lines[fences[-1] + 1:]).strip()
+        out["optimizer_outside_chars"] = len(outside)
+    ask = ["please provide", "could you share", "could you provide", "i need", "before i can",
+           "请提供", "需要您提供", "请补充", "需要以下信息", "提供以下信息"]
+    for side, text in target_outputs.items():
+        out[f"{side}_asked_for_info"] = any(s in text.lower() for s in ask)
     if case and case.get("mech", {}).get("widen_signals"):
         prompt = extract_prompt(case_id, opt_reply).lower()
         out["optimizer_widen_signals"] = [w for w in case["mech"]["widen_signals"] if w.lower() in prompt]

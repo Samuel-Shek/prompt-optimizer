@@ -330,10 +330,42 @@
           "next monday"
         ]
       }
+    },
+    {
+      "id": "N03",
+      "group": "dev",
+      "type": "unfilled placeholders: deliver, don't copy examples",
+      "optimizer_input": "Optimize this prompt: write a short email to one of our long-time customers telling them our new seasonal product catalog is out, and ask whether they'd like us to mail them a printed copy. Warm tone, under 100 words.",
+      "opt_checks": [
+        "Keeps: long-time customer, new seasonal catalog is out, ask whether they want a printed copy mailed, warm tone, under 100 words",
+        "Does not invent customer names, company names or catalog details; any example values are clearly generic, not realistic names",
+        "Tells the executor what to do if details such as the customer's name are not provided (e.g. use a generic greeting), instead of requiring them",
+        "No separate notes before or after the prompt"
+      ],
+      "effect": {
+        "task": "Write a short email to one of our long-time customers telling them our new seasonal product catalog is out, and ask whether they'd like us to mail them a printed copy. Warm tone, under 100 words.",
+        "material": "",
+        "criteria": [
+          "Delivers a usable email instead of only asking for details",
+          "Does not use invented realistic names for the customer, sender or company (a generic greeting or a visible [placeholder] is fine)",
+          "Under 100 words, warm, asks about the printed copy"
+        ]
+      },
+      "mech": {
+        "ask_signals": [
+          "please provide",
+          "could you share",
+          "could you provide",
+          "i need",
+          "before i can",
+          "let me know the"
+        ]
+      }
     }
   ],
   "changelog": [
     "2026-10-22 English edition created from cases.json (same IDs and intent). Word limits were adapted for English (C01 80 words, H03 120 words, H04 800 words), C03/C11 target languages changed to Spanish/French so the target language still differs from the prompt language, and names and amounts were localized. All material remains fictional.",
-    "2026-10-22 Added dev cases N01 (banned words not widened) and N02 (relative dates kept) for tuning the 3.5.2 candidate; H04 surfaced the issue and is no longer independent for it."
+    "2026-10-22 Added dev cases N01 (banned words not widened) and N02 (relative dates kept) for tuning the 3.5.2 candidate; H04 surfaced the issue and is no longer independent for it.",
+    "2026-10-23 Added dev case N03 (unfilled placeholders: deliver anyway, don't copy example values) for tuning the 3.5.3 candidate."
   ]
 }
