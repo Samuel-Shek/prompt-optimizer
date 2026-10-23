@@ -4,7 +4,7 @@
 
 把随手写的需求或已有的提示词，改成一份可以直接复制给 AI 用的提示词。它只改提示词，不替你去做提示词里的事。
 
-当前版本 **v3.5.1** · MIT 许可 · [版本记录](CHANGELOG.md) · [验证记录](VALIDATION.md)
+当前版本 **v3.5.2** · MIT 许可 · [版本记录](CHANGELOG.md) · [验证记录](VALIDATION.md)
 
 这是一个 Skill（写给 AI 读的工作说明），放进 Claude Code、Codex 这类能读取技能文件的 AI 工具里使用。它不是独立软件，也不是新模型，不需要额外的 API Key 或后台服务。
 
@@ -86,10 +86,10 @@
 1. 下载：
 
    ```bash
-   git clone --branch v3.5.1 --depth 1 https://github.com/Samuel-Shek/prompt-optimizer.git
+   git clone --branch v3.5.2 --depth 1 https://github.com/Samuel-Shek/prompt-optimizer.git
    ```
 
-   也可以在[发布页](https://github.com/Samuel-Shek/prompt-optimizer/releases/tag/v3.5.1)下载压缩包。
+   也可以在[发布页](https://github.com/Samuel-Shek/prompt-optimizer/releases/tag/v3.5.2)下载压缩包。
 
 2. 把整个 `prompt-optimizer` 文件夹放进 AI 工具的技能目录，保留里面的 `references/` 和 `agents/`。常见位置：Claude Code 是 `~/.claude/skills/`，Codex 是 `~/.agents/skills/`，WorkBuddy 是 `~/.workbuddy/skills/`，以各工具当前文档为准。已经装过同名技能的，先看清版本，别把自己改过的内容覆盖掉。
 
@@ -140,7 +140,8 @@
 
 ## 版本
 
-- **v3.5.1（当前）**：新增英文版 `prompt-optimizer-en`、英文考卷和 Claude Code 插件市场安装方式；中文版规则没有改动。英文版 16 道题实测结果见[验证记录](VALIDATION.md)。
+- **v3.5.2（当前）**：禁用词清单和“下周三前”这类相对时间按你的原话执行，不再扩大禁用范围，也不再改成待填的具体日期。测试结果见[验证记录](VALIDATION.md)。
+- **v3.5.1**：新增英文版 `prompt-optimizer-en`、英文考卷和 Claude Code 插件市场安装方式；中文版规则没有改动。英文版 16 道题实测结果见[验证记录](VALIDATION.md)。
 - **v3.5.0**：减少擅自增加条件。改写时区分“你原本的要求”“等义的澄清”和“它新加的建议”；没有依据就不添加数量、格式、筛选或验收条件；交付前同时检查有没有漏掉要求、有没有多加限制。发布后在 Claude 上和 v3.4.0 同场重测了 16 道题，没有发现稳定变差的地方，详见[验证记录](VALIDATION.md)。
 - 想回到上一版：
 

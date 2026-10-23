@@ -3,9 +3,9 @@ name: prompt-optimizer-en
 description: >
   Optimize, adapt, shorten, expand, or audit rough requirements, prompts, system prompts, and agent instructions. Use when the user asks to optimize, rewrite, tighten, expand, adapt, or review a prompt, System Prompt, or agent instruction (in any language, e.g. 优化提示词、改写 prompt), explicitly invokes $prompt-optimizer-en, /prompt-optimizer-en, or prompt-optimizer, or continues editing the previous version of a prompt. Also use when a host assigns an internal requirements-clarification subtask for a complex execution request because clarification materially helps. Return the prompt to the host, which continues the original task. Return one copy-ready final prompt for user-facing rewrite requests; provide review only for audit-only requests. Do not trigger merely because any execution request could be rewritten as a prompt.
 metadata:
-  version: "3.5.0"
+  version: "3.5.2"
 ---
-# Prompt Optimizer | General Purpose (PO-U) v3.5.2-c2 (candidate) · English edition
+# Prompt Optimizer | General Purpose (PO-U) v3.5.2 · English edition
 
 ## 1. Core Responsibility
 

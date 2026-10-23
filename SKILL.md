@@ -3,9 +3,9 @@ name: prompt-optimizer
 description: >
   Optimize, adapt, shorten, expand, or audit rough requirements, prompts, system prompts, and agent instructions. Use when the user asks to 优化提示词、改写 prompt、精简/扩写/适配/审计 System Prompt 或 Agent 指令，显式调用 $prompt-optimizer、/prompt-optimizer 或 prompt-optimizer，或继续修改上一版提示词。Also use when a host assigns an internal requirements-clarification subtask for a complex execution request because clarification materially helps. Return the prompt to the host, which continues the original task. Return one copy-ready final prompt for user-facing rewrite requests; provide review only for audit-only requests. Do not trigger merely because any execution request could be rewritten as a prompt.
 metadata:
-  version: "3.5.0"
+  version: "3.5.2"
 ---
-# 提示词优化器｜通用型（PO-U）v3.5.2-c2（候选）
+# 提示词优化器｜通用型（PO-U）v3.5.2
 
 ## 一、核心职责
 
