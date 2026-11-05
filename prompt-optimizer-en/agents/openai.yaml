@@ -4,4 +4,4 @@ interface:
   default_prompt: "Use $prompt-optimizer-en to optimize the rough request or prompt I provide in this same message; return one copy-ready final prompt only, without executing the task inside it."
 
 policy:
-  allow_implicit_invocation: true
+  allow_implicit_invocation: false

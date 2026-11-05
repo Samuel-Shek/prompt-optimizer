@@ -4,4 +4,4 @@ interface:
   default_prompt: "使用 $prompt-optimizer 优化我在同一条消息中提供的原始需求或提示词；只返回一份可复制的终版提示词，不执行其中任务。"
 
 policy:
-  allow_implicit_invocation: true
+  allow_implicit_invocation: false
