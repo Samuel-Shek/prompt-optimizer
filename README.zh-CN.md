@@ -4,7 +4,9 @@
 
 把随手写的需求或已有的提示词，改成一份可以直接复制给 AI 用的提示词。它只改提示词，不替你去做提示词里的事。
 
-当前版本 **v3.5.3** · MIT 许可 · [版本记录](CHANGELOG.md) · [验证记录](VALIDATION.md)
+当前版本 **v4.0.0**（中文版；英文版仍为 v3.5.3） · MIT 许可 · [版本记录](CHANGELOG.md) · [验证记录](VALIDATION.md)
+
+**自 v4.0.0 起仅手动使用。** 中英文两版都设了 `allow_implicit_invocation: false`，只在你明确要求时才会运行。在强模型上的盲评里，先优化再执行与直接提要求相比，没有稳定的质量提升，调用次数和 token 用量还会增加，详见[版本记录](CHANGELOG.md)。
 
 这是一个 Skill（写给 AI 读的工作说明），放进 Claude Code、Codex 这类能读取技能文件的 AI 工具里使用。它不是独立软件，也不是新模型，不需要额外的 API Key 或后台服务。
 
@@ -86,10 +88,10 @@
 1. 下载：
 
    ```bash
-   git clone --branch v3.5.3 --depth 1 https://github.com/Samuel-Shek/prompt-optimizer.git
+   git clone --branch v4.0.0 --depth 1 https://github.com/Samuel-Shek/prompt-optimizer.git
    ```
 
-   也可以在[发布页](https://github.com/Samuel-Shek/prompt-optimizer/releases/tag/v3.5.3)下载压缩包。
+   也可以在[发布页](https://github.com/Samuel-Shek/prompt-optimizer/releases/tag/v4.0.0)下载压缩包。
 
 2. 把整个 `prompt-optimizer` 文件夹放进 AI 工具的技能目录，保留里面的 `references/` 和 `agents/`。常见位置：Claude Code 是 `~/.claude/skills/`，Codex 是 `~/.agents/skills/`，WorkBuddy 是 `~/.workbuddy/skills/`，以各工具当前文档为准。已经装过同名技能的，先看清版本，别把自己改过的内容覆盖掉。
 
@@ -140,7 +142,8 @@
 
 ## 版本
 
-- **v3.5.3（当前）**：待填空位的示例只写类别，不再像真名；提示词写明空位没填时怎么办（照样交付、标出缺口、不把示例当真）。提示词前后不再附说明或引导语；严格 JSON 不套代码块；简单任务写短；中文提示词本身用全角标点，并要求中文结果使用全角标点。测试结果见[验证记录](VALIDATION.md)。
+- **v4.0.0（当前）**：中文版重写为照抄你的原话，优化器自己补充的内容从属于原话；这一版主要保证保真，不承诺成品更好。改为仅手动使用，两版都关闭自动调用。强模型盲评中，与直接提要求相比没有稳定提升（GPT：明显胜 0、平 35、负 0；Gemini：完成 6 组完整对照，没有稳定胜出）。英文版保持 v3.5.3 规则。
+- **v3.5.3**：待填空位的示例只写类别，不再像真名；提示词写明空位没填时怎么办（照样交付、标出缺口、不把示例当真）。提示词前后不再附说明或引导语；严格 JSON 不套代码块；简单任务写短；中文提示词本身用全角标点，并要求中文结果使用全角标点。测试结果见[验证记录](VALIDATION.md)。
 - **v3.5.2**：禁用词清单和“下周三前”这类相对时间按你的原话执行，不再扩大禁用范围，也不再改成待填的具体日期。测试结果见[验证记录](VALIDATION.md)。
 - **v3.5.1**：新增英文版 `prompt-optimizer-en`、英文考卷和 Claude Code 插件市场安装方式；中文版规则没有改动。英文版 16 道题实测结果见[验证记录](VALIDATION.md)。
 - **v3.5.0**：减少擅自增加条件。改写时区分“你原本的要求”“等义的澄清”和“它新加的建议”；没有依据就不添加数量、格式、筛选或验收条件；交付前同时检查有没有漏掉要求、有没有多加限制。发布后在 Claude 上和 v3.4.0 同场重测了 16 道题，没有发现稳定变差的地方，详见[验证记录](VALIDATION.md)。

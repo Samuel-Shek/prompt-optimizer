@@ -4,11 +4,13 @@
 
 Turn a rough request, or a prompt you already have, into one prompt you can paste straight into an AI. It only rewrites the prompt. It doesn't do the task inside it for you.
 
-Current version **v3.5.3** · MIT license · [Changelog](CHANGELOG.md) · [Validation (Chinese)](VALIDATION.md)
+Current version **v4.0.0** (Chinese edition; the English edition is still v3.5.3) · MIT license · [Changelog](CHANGELOG.md) · [Validation (Chinese)](VALIDATION.md)
 
 This is a Skill: a set of working instructions written for an AI to read. You use it inside AI tools that load skill files, such as Claude Code and Codex. It isn't a standalone app or a new model, and it needs no extra API key or background service.
 
-There are two editions with the same rules: the English edition in `prompt-optimizer-en/` (skill name `prompt-optimizer-en`) and the Chinese edition at the repository root (skill name `prompt-optimizer`). Both reply in the language you write in.
+There are two editions: the English edition in `prompt-optimizer-en/` (skill name `prompt-optimizer-en`) and the Chinese edition at the repository root (skill name `prompt-optimizer`). Both reply in the language you write in. As of v4.0.0 they no longer share the same rules: the Chinese edition has the v4.0.0 rules, and the English edition keeps the v3.5.3 rules (not yet translated).
+
+**Manual use only (since v4.0.0).** Both editions set `allow_implicit_invocation: false`, so they run only when you explicitly ask for them. In blind evaluations on strong models, optimizing a request first gave no stable quality gain over asking the model directly, and it cost more calls and tokens. See [CHANGELOG.md](CHANGELOG.md).
 
 ## What it does
 
@@ -95,10 +97,10 @@ For the Chinese edition, install `prompt-optimizer@prompt-optimizer` instead.
 1. Download:
 
    ```bash
-   git clone --branch v3.5.3 --depth 1 https://github.com/Samuel-Shek/prompt-optimizer.git
+   git clone --branch v4.0.0 --depth 1 https://github.com/Samuel-Shek/prompt-optimizer.git
    ```
 
-   Or download the archive from the [release page](https://github.com/Samuel-Shek/prompt-optimizer/releases/tag/v3.5.3).
+   Or download the archive from the [release page](https://github.com/Samuel-Shek/prompt-optimizer/releases/tag/v4.0.0).
 
 2. Copy the `prompt-optimizer-en` folder into your AI tool's skills folder, keeping its `references/` and `agents/` subfolders. Common locations: `~/.claude/skills/` for Claude Code, `~/.agents/skills/` for Codex. Check your tool's current docs.
 
@@ -163,7 +165,8 @@ The most useful feedback is a real case where it got something wrong. [Open a ba
 
 ## Versions
 
-- **v3.5.3 (current):** placeholder examples describe a category instead of looking like real names, and prompts say what to do when a placeholder is left unfilled (deliver, mark the gap, never use the example as real). No notes or lead-in lines outside the prompt; strict JSON with no code fence; simple tasks get short prompts; prompts for Chinese output ask for full-width punctuation.
+- **v4.0.0 (current):** Chinese edition rewritten to keep your wording verbatim, with the optimizer's own additions kept subordinate to it; the main aim is fidelity, not better results. Manual use only: implicit invocation is off in both editions. Blind evaluations on strong models showed no stable quality gain over asking directly (GPT: 0 clear wins, 35 ties, 0 losses; Gemini: 6 complete pairs, no stable win). The English edition keeps the v3.5.3 rules.
+- **v3.5.3:** placeholder examples describe a category instead of looking like real names, and prompts say what to do when a placeholder is left unfilled (deliver, mark the gap, never use the example as real). No notes or lead-in lines outside the prompt; strict JSON with no code fence; simple tasks get short prompts; prompts for Chinese output ask for full-width punctuation.
 - **v3.5.2:** keeps banned-word lists and relative times such as "by next Wednesday" exactly as you wrote them. Earlier versions sometimes widened a banned list to word variants or turned relative times into placeholders for a specific date.
 - **v3.5.1:** adds the English edition `prompt-optimizer-en`, English test cases and Claude Code plugin install. The rules are unchanged.
 - **v3.5.0:** fewer self-invented conditions. It separates your original requirements, equivalent clarifications and its own suggestions, and doesn't add counts, formats, filters or acceptance criteria without a basis.
