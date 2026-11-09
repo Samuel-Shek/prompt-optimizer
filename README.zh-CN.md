@@ -1,5 +1,7 @@
 # prompt-optimizer
 
+> **已迁移至 [Samuel-Shek/prompt-optimizer-skill](https://github.com/Samuel-Shek/prompt-optimizer-skill)，本仓库已归档（2026-11-09）。** 新版本、问题反馈和讨论都在新仓库；Claude Code 安装请用 `/plugin marketplace add Samuel-Shek/prompt-optimizer-skill`。这里已有的标签和发布页仍可查看。
+
 [English](README.md) · **简体中文**
 
 把随手写的需求或已有的提示词，改成一份可以直接复制给 AI 用的提示词。它只改提示词，不替你去做提示词里的事。

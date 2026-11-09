@@ -1,5 +1,9 @@
 # prompt-optimizer
 
+> **This repository has moved to [Samuel-Shek/prompt-optimizer-skill](https://github.com/Samuel-Shek/prompt-optimizer-skill) and is archived (2026-11-09).** New releases, issues and discussions live there. Claude Code users: `/plugin marketplace add Samuel-Shek/prompt-optimizer-skill`. Existing tags and releases here stay readable.
+>
+> **已迁移至 [prompt-optimizer-skill](https://github.com/Samuel-Shek/prompt-optimizer-skill)，本仓库已归档（2026-11-09）。**
+
 **English** · [简体中文](README.zh-CN.md)
 
 Turn a rough request, or a prompt you already have, into one prompt you can paste straight into an AI. It only rewrites the prompt. It doesn't do the task inside it for you.
